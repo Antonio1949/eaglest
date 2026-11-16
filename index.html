@@ -362,8 +362,8 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
             <ol style="padding-left: 18px; margin-bottom: 6px;">
                 <li>Scheda <b>Mappa</b>: controlla che la barra mostri la buca giusta (◀ ▶ per cambiarla).</li>
                 <li>Aspetta che il riquadro in alto sia <b>verde (GPS buono)</b>.</li>
-                <li>Confronta il <b>centro green</b> con Golfshot, dallo stesso punto.</li>
-                <li>Se la differenza supera <b>4–5 m</b>: tocca <b>⚠️ Segnala distanza</b>. Non serve annotare altro.</li>
+                <li>Confronta il <b>centro green</b> con l'altro strumento (Garmin o Golfshot), dallo stesso punto. Su Garmin non spostare la bandiera.</li>
+                <li>Se la differenza supera <b>4–5 m</b>: tocca <b>⚠️ Segnala distanza</b> e scrivi la distanza al centro dell'altro strumento. Non serve annotare altro.</li>
                 <li>Scheda <b>Scorecard</b>: segna i colpi (il primo + mette il par, poi +/−).</li>
             </ol>
             <p><b>A fine giro</b></p>
@@ -1115,12 +1115,20 @@ function renderReportCount() {
         : 'Nessuna segnalazione.';
 }
 
-function reportDistance() {
-    const d = currentDistances();
+/* Distanza al centro green letta su un altro strumento (Garmin, Golfshot...).
+   refText assente → la chiede; Annulla → nessuna segnalazione; vuoto → salvata senza riferimento. */
+function reportDistance(refText) {
+    const d = currentDistances();   // fissata al tocco, prima che il giocatore scriva
+    if (refText === undefined) refText = prompt('Distanza al centro green sull\'altro strumento (m)?\nLascia vuoto se non la hai.', '');
+    if (refText === null) return;
+    const ref = parseFloat(String(refText).replace(',', '.'));
+    const center = d ? Math.round(d.center) : null;
+    const reference = isNaN(ref) ? null : Math.round(ref);
     reports.push({
         time: new Date().toISOString(), course: activeCourseKey, hole: currentHole,
         position: lastPos ? lastPos.coords : null, accuracy: lastPos ? Math.round(lastPos.accuracy) : null,
-        distances: d ? { front: Math.round(d.front), center: Math.round(d.center), back: Math.round(d.back) } : null,
+        distances: d ? { front: Math.round(d.front), center, back: Math.round(d.back) } : null,
+        reference, delta: center !== null && reference !== null ? center - reference : null,
         app: APP_VERSION,
     });
     save('eaglest_reports', reports);
