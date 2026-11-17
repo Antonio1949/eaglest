@@ -36,10 +36,12 @@ async function tile(request) {
     }
 }
 
-/** File dell'app: prima la rete (aggiornamenti), se manca la copia salvata. */
+/** File dell'app: prima la rete (aggiornamenti), se manca la copia salvata.
+ * 'no-cache' chiede sempre al server se il file è cambiato: GitHub Pages dichiara 10 minuti
+ * di validità e senza questo il browser restituirebbe la versione precedente. */
 async function appFile(request) {
     try {
-        const res = await fetch(request);
+        const res = await fetch(request, { cache: 'no-cache' });
         if (res.ok) (await caches.open(APP_CACHE)).put(request, res.clone());
         return res;
     } catch {
