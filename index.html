@@ -516,6 +516,16 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
             <p id="reportCount" style="margin-bottom:6px;">Nessuna segnalazione.</p>
             <button class="btn" onclick="exportReports()">📤 Esporta segnalazioni</button>
         </div>
+        <div class="help-box">
+            <h4 style="margin-top:0;">🛰️ Registra il percorso</h4>
+            <p style="margin-bottom:6px;">Salva sul telefono ogni posizione GPS (ora, punto, precisione, buca mostrata) mentre la Mappa o la Scorecard sono aperte. Il file serve a provare il cambio automatico di buca su tracce vere. Nessun invio: lo esporti tu.</p>
+            <p id="trackInfo" style="margin-bottom:6px;"></p>
+            <div style="display:flex; gap:6px;">
+                <button class="btn" id="btnTrack" onclick="toggleTrack()"></button>
+                <button class="btn btn-secondary" onclick="exportTrack()">📤 Esporta</button>
+                <button class="btn btn-secondary" onclick="clearTrack()">🗑️</button>
+            </div>
+        </div>
     </div>
 
     <!-- ELENCO BUCHE -->
@@ -1353,13 +1363,51 @@ return maplibregl$1;
 
 </script>
 <script>
+/* src/js/track.js */
+/* EaglesT — registratore di percorso: tracce GPS vere per il simulatore del cambio buca (logica pura). */
+(function (root) {
+    const MAX_POINTS = 30000;   // oltre 8 ore a una posizione al secondo
+    const COLUMNS = ['t', 'lng', 'lat', 'acc', 'course', 'hole'];
+
+    const round6 = v => Math.round(v * 1e6) / 1e6;
+
+    /** Aggiunge una posizione: [ms, lng, lat, precisione m, campo, buca mostrata]; tiene le ultime MAX_POINTS. */
+    function addPoint(points, time, coords, accuracy, course, hole) {
+        points.push([time, round6(coords[0]), round6(coords[1]), Math.round(accuracy), course, hole]);
+        if (points.length > MAX_POINTS) points.splice(0, points.length - MAX_POINTS);
+        return points;
+    }
+
+    /** File da esportare: colonne dichiarate, inizio e fine leggibili. */
+    function exportData(points, appVersion) {
+        return {
+            app: appVersion,
+            from: points.length ? new Date(points[0][0]).toISOString() : null,
+            to: points.length ? new Date(points[points.length - 1][0]).toISOString() : null,
+            columns: COLUMNS,
+            points,
+        };
+    }
+
+    /** Minuti registrati (dalla prima all'ultima posizione). */
+    function minutes(points) {
+        return points.length < 2 ? 0 : Math.round((points[points.length - 1][0] - points[0][0]) / 60000);
+    }
+
+    const api = { addPoint, exportData, minutes, MAX_POINTS, COLUMNS };
+    root.EaglesT = Object.assign(root.EaglesT || {}, { track: api });
+    if (typeof module !== 'undefined' && module.exports) module.exports = api;
+})(typeof globalThis !== 'undefined' ? globalThis : window);
+
+</script>
+<script>
 /* src/js/app.js */
 /* EaglesT — interfaccia. La logica pura sta in geo.js, course.js, scoring.js, round.js. */
-const { geo, course: courseLib, scoring, mapstyle, round: roundLib, roster: rosterLib, share: shareLib } = window.EaglesT;
+const { geo, course: courseLib, scoring, mapstyle, round: roundLib, roster: rosterLib, share: shareLib, track: trackLib } = window.EaglesT;
 
 window.addEventListener('error', e => { document.body.dataset.error = e.message; });
 
-const APP_VERSION = '0.8 collaudo';
+const APP_VERSION = '0.9 collaudo';
 const APP_URL = 'https://antonio1949.github.io/eaglest/';   // per i link creati dal file unico aperto in locale
 const AUTO_RESUME_M = 30;    // dopo un cambio buca a mano, l'avanzamento automatico riparte spostandosi di 30 m
 const TOAST_MS = 4000;
@@ -1395,6 +1443,7 @@ let selectedFlightIndices = load('eaglest_last_flight', [0]).filter(i => i < ros
 let gameConfig = load('eaglest_game_config', { holesType: '18' });
 let activeRound = load('eaglest_round', null);
 let reports = load('eaglest_reports', []);
+let track = load('eaglest_track', { on: false, points: [] });
 if (activeRound && !activeRound.closed) gameConfig.holesType = activeRound.holesType;
 
 let activeCourseKey = activeRound ? activeRound.courseId : localStorage.getItem('eaglest_active_course');
@@ -1741,6 +1790,7 @@ function onPosition(position) {
     if (first) frameHole(activeHole());
     renderDistances();
     checkAutoAdvance();
+    recordPosition();
 }
 
 function startGps() {
@@ -1821,6 +1871,47 @@ async function exportReports() {
     await shareJsonFile('eaglest_segnalazioni', reports, 'Segnalazioni EaglesT');
 }
 
+/* ---------- Registratore di percorso ---------- */
+
+const TRACK_SAVE_EVERY = 15;   // posizioni tra un salvataggio e l'altro (salvare a ogni secondo rallenta)
+
+function saveTrack() { save('eaglest_track', track); }
+
+function recordPosition() {
+    if (!track.on) return;
+    trackLib.addPoint(track.points, lastPos.time, lastPos.coords, lastPos.accuracy, activeCourseKey, currentHole);
+    if (track.points.length % TRACK_SAVE_EVERY === 0) saveTrack();
+}
+
+function renderTrack() {
+    const n = track.points.length;
+    document.getElementById('trackInfo').innerText = (track.on ? '🔴 Registrazione attiva · ' : '')
+        + (n ? `${n} posizioni, ${trackLib.minutes(track.points)} minuti.` : 'Nessuna posizione registrata.');
+    document.getElementById('btnTrack').innerText = track.on ? '⏹️ Ferma' : '⏺️ Registra';
+}
+
+function toggleTrack() {
+    track.on = !track.on;
+    saveTrack();
+    renderTrack();
+}
+
+async function exportTrack() {
+    saveTrack();
+    if (!track.points.length) { alert('Nessuna posizione registrata.'); return; }
+    await shareJsonFile('eaglest_percorso', trackLib.exportData(track.points, APP_VERSION), 'Percorso EaglesT');
+}
+
+function clearTrack() {
+    if (!track.points.length || !confirm(`Cancellare ${track.points.length} posizioni registrate?`)) return;
+    track.points = [];
+    saveTrack();
+    renderTrack();
+}
+
+// telefono in tasca o app chiusa: salva quello che manca
+document.addEventListener('visibilitychange', () => { if (document.hidden && track.on) saveTrack(); });
+
 /* ---------- Navigazione schede ---------- */
 
 function switchTab(tabId) {
@@ -1841,7 +1932,7 @@ function switchTab(tabId) {
     if(tabId === 'club') { renderRoster(); }
     if(tabId === 'home') { renderHome(); }
     if(tabId === 'rounds') { renderRoundsList(); }
-    if(tabId === 'help') { renderReportCount(); }
+    if(tabId === 'help') { renderReportCount(); renderTrack(); }
 }
 
 document.addEventListener('visibilitychange', () => {
