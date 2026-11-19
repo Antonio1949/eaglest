@@ -935,10 +935,14 @@ return maplibregl$1;
 </script>
 <script>
 /* src/js/mapstyle.js */
-/* EaglesT — stile mappa satellitare (Esri World Imagery, senza chiave).
- * Termini d'uso Esri: attribuzione obbligatoria, verificare i limiti prima di un uso pubblico. */
+/* EaglesT — stile mappa satellitare (Esri World Imagery, account gratuito ArcGIS Location Platform "eaglest").
+ * Le tessere sono quelle dello stile ufficiale Esri "arcgis/imagery/standard" (basemap styles v2), con la chiave
+ * dell'account: l'uso viene conteggiato nella quota gratuita. La chiave è pubblica per natura (app nel browser),
+ * limitata ai privilegi mappe di base e al referrer https://antonio1949.github.io; ha una scadenza (vedi NOTES.md):
+ * scaduta, la mappa non si carica ma le distanze funzionano comunque. Attribuzione obbligatoria (termini Esri). */
 (function (root) {
-    const SATELLITE_TILES = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+    const ESRI_API_KEY = 'AAPTaxOssK1tFp9OdXkxwmqIbJw..FlFmQcM0IELESdyWupgNCSuOAfbcNUUdypsMK1RnNjM-f2TIjbJt4GbPTbqgOo88SSNKq9IEFPHDert3Qhq2e6JW8oyXeiRmw7GWexMhB2bZoyscwTXS0h0lUc1LnJz6wxg8mlB0wkq-eqQNN5vF2xd0ioZjLpkhnbO1nZLb28q4Q6xNwE-Xio1qikhFrzIjN9l4Yq7DXHuwRqBvHhntwTyygV1FnjYwAWNYf3IktZq5-2vCoFm3_rboAT1_7ENerMNH';
+    const SATELLITE_TILES = 'https://ibasemaps-api.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}?token=' + ESRI_API_KEY;
 
     function satelliteStyle() {
         return {
@@ -949,7 +953,7 @@ return maplibregl$1;
                     tiles: [SATELLITE_TILES],
                     tileSize: 256,
                     maxzoom: 19,
-                    attribution: 'Immagini © Esri, Maxar, Earthstar Geographics · Campo © OpenStreetMap'
+                    attribution: 'Immagini: Esri, Vantor, GeoEye, Earthstar Geographics, CNES/Airbus DS, USDA, USGS, AeroGRID, IGN · Campo © OpenStreetMap'
                 }
             },
             layers: [{ id: 'satellite', type: 'raster', source: 'satellite' }]
