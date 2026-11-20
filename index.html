@@ -112,10 +112,10 @@ header h1 { font-size: 1rem; font-weight: 700; letter-spacing: 0.5px; }
 .received-me { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; margin-bottom: 10px; }
 .received-me select { flex: 1; }
 .btn-small { padding: 5px 10px; font-size: 0.8rem; margin-top: 4px; }
-.card-loops { font-size: 0.8rem; margin-bottom: 6px; }
+.card-loops { font-size: 0.8rem; margin-bottom: 6px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
 #cardRouteSelect { margin-bottom: 6px; }
 .course-card tbody tr { cursor: default; }
-.course-card td, .course-card th { font-size: 0.75rem; padding: 4px 5px; }
+table.course-card td, table.course-card th { font-size: 0.72rem; padding: 4px 2px; white-space: normal; line-height: 1.15; }
 .round-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 4px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 0.85rem; }
 .round-pts { font-size: 1.2rem; font-weight: 700; color: var(--secondary); white-space: nowrap; }
 .btn-outline { background: var(--white); color: var(--primary); border: 2px solid var(--primary); padding: 10px 16px; border-radius: 6px; font-weight: bold; width: 100%; cursor: pointer; font-size: 0.9rem; min-height: 44px; }
@@ -231,7 +231,13 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
 .hole-grid button.current small { color: #dfe; }
 .toast { position: fixed; left: 50%; bottom: 76px; transform: translateX(-50%); background: var(--primary); color: white; padding: 8px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; z-index: 60; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
 .verify-title { font-size: 0.9rem; color: var(--primary); margin-bottom: 6px; }
-.card-scroll { overflow-x: auto; }
+.card-scroll { overflow-x: auto; padding-bottom: 2px; }
+.card-scroll::-webkit-scrollbar { height: 8px; }
+.card-scroll::-webkit-scrollbar-track { background: #e9ecef; border-radius: 4px; }
+.card-scroll::-webkit-scrollbar-thumb { background: var(--secondary); border-radius: 4px; }
+/* scheda campo: scorre dentro un riquadro alto quanto lo schermo, così la barra orizzontale è sempre in vista */
+.card-scroll-box { max-height: calc(100vh - 250px); overflow: auto; }
+.card-scroll-box thead th { position: sticky; top: 0; z-index: 1; }
 .card-table td, .card-table th { white-space: nowrap; }
 .card-table tbody tr { cursor: pointer; }
 .card-table td.missing { background: #fff3cd; color: #664d03; }
@@ -240,6 +246,8 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
 .card-table .card-pts { color: var(--primary); font-size: 0.75rem; font-weight: 700; }
 .card-table .card-ph { color: #dfe; }
 .entry-table .stars { color: #b35c00; }
+.entry-table td { padding: 2px 4px; }
+.entry-table .btn-score { width: 44px; height: 44px; font-size: 1.3rem; }
 .card-table tfoot td { font-weight: 700; background: #e8f5e9; }
 .verify-note { margin-top: 6px; line-height: 1.4; }
 
@@ -410,7 +418,7 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
             <h3 class="verify-title" id="cardTitle">Scheda campo</h3>
             <div class="card-loops" id="cardLoops"></div>
             <select id="cardRouteSelect" onchange="renderCourseCard()"></select>
-            <div class="card-scroll">
+            <div class="card-scroll card-scroll-box">
                 <table class="score-table card-table course-card">
                     <thead id="cardHead"></thead>
                     <tbody id="cardBody"></tbody>
@@ -484,10 +492,10 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
     <div id="tab-help" class="tab-content">
         <div class="help-box" id="fieldTestGuide">
             <h4 style="margin-top:0;">⛳ Collaudo in campo: cosa fare</h4>
-            <p>Collaudo della <b>v0.10 collaudo</b>: il nuovo <b>cambio automatico di buca</b> e il <b>cartellino di gara</b>. Distanze e ostacoli delle prime 9 del Brianza sono già confermati.</p>
+            <p>Collaudo della <b>v0.11 collaudo</b>: il nuovo <b>cambio automatico di buca</b> e il <b>cartellino di gara</b>. Distanze e ostacoli delle prime 9 del Brianza sono già confermati.</p>
             <p><b>A casa, prima di partire</b> (con la rete)</p>
             <ol style="padding-left: 18px; margin-bottom: 6px;">
-                <li>Apri EaglesT e controlla in alto a destra <b>v0.10 collaudo</b>. Se vedi una versione precedente, chiudi l'app del tutto e riaprila.</li>
+                <li>Apri EaglesT e controlla in alto a destra <b>v0.11 collaudo</b>. Se vedi una versione precedente, chiudi l'app del tutto e riaprila.</li>
                 <li>Telefono carico; porta un powerbank.</li>
                 <li>Qui in Aiuto, riquadro <b>🛰️ Registra il percorso</b>: <b>🗑️</b> se ci sono prove vecchie, poi <b>⏺️ Registra</b>.</li>
             </ol>
@@ -1569,7 +1577,7 @@ const { geo, course: courseLib, scoring, mapstyle, round: roundLib, roster: rost
 
 window.addEventListener('error', e => { document.body.dataset.error = e.message; });
 
-const APP_VERSION = '0.10 collaudo';
+const APP_VERSION = '0.11 collaudo';
 const APP_URL = 'https://antonio1949.github.io/eaglest/';   // per i link creati dal file unico aperto in locale
 const AUTO_RESUME_M = 30;    // dopo un cambio buca a mano, l'avanzamento automatico riparte spostandosi di 30 m
 const TOAST_MS = 4000;
@@ -2191,18 +2199,32 @@ function playerTee(p) {
 }
 
 function populateSetupFlightSlots() {
-    const sortedRoster = getAlphabeticalRosterWithIndices();
-    for(let s=0; s<4; s++) {
+    for (let s = 0; s < 4; s++) {
         const sel = document.getElementById(`slotPlayer${s}`);
         const chosen = roster[selectedFlightIndices[s]];
-        sel.innerHTML = '<option value="">-- Seleziona --</option>' + sortedRoster.map(r =>
-            `<option value="${r.originalIndex}" ${selectedFlightIndices[s] === r.originalIndex ? 'selected' : ''}>${esc(r.name)} (HCP: ${r.hcp})</option>`).join('');
+        sel.dataset.value = chosen ? String(selectedFlightIndices[s]) : '';
         sel.onchange = () => {
             const p = roster[sel.value];
             if (p) document.getElementById(`slotTee${s}`).value = playerTee(p);
+            sel.dataset.value = sel.value;
+            renderSlotOptions();
         };
         document.getElementById(`slotTee${s}`).innerHTML = teeOptions(chosen ? playerTee(chosen) : 'giallo');
     }
+    renderSlotOptions();
+}
+
+/** Elenco di ogni posto del flight: la rubrica in ordine alfabetico, senza chi è già scelto negli altri posti. */
+function renderSlotOptions() {
+    const sortedRoster = getAlphabeticalRosterWithIndices();
+    const sels = [0, 1, 2, 3].map(s => document.getElementById(`slotPlayer${s}`));
+    sels.forEach(sel => {
+        const mine = sel.dataset.value;
+        const taken = new Set(sels.filter(o => o !== sel).map(o => o.dataset.value).filter(Boolean));
+        sel.innerHTML = '<option value="">-- Seleziona --</option>' + sortedRoster
+            .filter(r => !taken.has(String(r.originalIndex)))
+            .map(r => `<option value="${r.originalIndex}" ${mine === String(r.originalIndex) ? 'selected' : ''}>${esc(r.name)} (HCP: ${r.hcp})</option>`).join('');
+    });
 }
 
 function setActiveCourse(key) {
@@ -2515,17 +2537,17 @@ function renderCourseCard() {
     const tees = Object.keys(c.tees);
     document.getElementById('cardTitle').innerText = c.clubFullName || c.fullName;
     document.getElementById('cardLoops').innerHTML = clubLoops(routes)
-        .map(l => `<div><b>${esc(l.name)}</b>: ${l.count} buche · par ${l.par} · ${l.m} m dal giallo</div>`).join('');
+        .map(l => `<span><b>${esc(l.name)}</b>: par ${l.par} · ${l.m} m</span>`).join('');
     document.getElementById('cardHead').innerHTML = '<tr><th>Buca</th><th>Par</th><th>Hcp</th>' +
-        tees.map(t => `<th>${TEE_LABELS[t] || t}</th>`).join('') + '</tr>';
+        tees.map(t => `<th title="${TEE_LABELS[t] || t}">${(TEE_LABELS[t] || t).split(' ')[0]}<br>${t.slice(0, 3)}</th>`).join('') + '</tr>';
     document.getElementById('cardBody').innerHTML = c.holes.map(h =>
-        `<tr><td><b>${h.n}</b>${h.label ? ` <span class="small-note">${esc(h.label)}</span>` : ''}</td><td>${h.par}</td><td>${h.si}</td>` +
+        `<tr><td><b>${h.n}</b>${h.label ? `<br><span class="small-note">${esc(h.label)}</span>` : ''}</td><td>${h.par}</td><td>${h.si}</td>` +
         tees.map(t => `<td>${h.lengths[t] || '–'}</td>`).join('') + '</tr>').join('');
     const total = t => c.holes.reduce((s, h) => s + (h.lengths[t] || 0), 0);
     const rating = (key, label) => {
         const L = c.layouts[key];
         return `<tr><td colspan="3">${label} · par ${L.par}</td>` +
-            tees.map(t => `<td>${L[t] ? `${roundLib.formatDecimal(L[t][0])} / ${L[t][1]}` : '–'}</td>`).join('') + '</tr>';
+            tees.map(t => `<td>${L[t] ? `${roundLib.formatDecimal(L[t][0])} /<br>${L[t][1]}` : '–'}</td>`).join('') + '</tr>';
     };
     document.getElementById('cardFoot').innerHTML =
         `<tr><td colspan="3">Totale metri</td>${tees.map(t => `<td>${total(t)}</td>`).join('')}</tr>` +
@@ -2593,7 +2615,7 @@ function renderScoreTable() {
     tbody.innerHTML = activeRound.players.map(p => {
         const r = roundLib.holeResult(activeRound, c, currentHole, p);
         const strokesHtml = r.strokes == null ? '<span class="score-empty">–</span>' : r.strokes;
-        const ptsHtml = r.points == null ? '<span class="score-empty">–</span>' : `${r.points} pt`;
+        const ptsHtml = r.points == null ? '' : `${r.points} pt`;
         return `<tr>
             <td style="text-align:left; font-weight:bold;">${esc(p.name)} <span class="stars">${roundLib.stars(r.received)}</span></td>
             <td>
