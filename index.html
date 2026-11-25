@@ -113,6 +113,8 @@ header h1 { font-size: 1rem; font-weight: 700; letter-spacing: 0.5px; }
 .received-me select { flex: 1; }
 .btn-small { padding: 5px 10px; font-size: 0.8rem; margin-top: 4px; }
 .invite-btn { white-space: nowrap; margin-top: 0; }
+.roster-group-note { background: #e8f5e9; border-radius: 6px; padding: 6px 8px; margin-bottom: 6px; font-size: 0.8rem; }
+.roster-group-note select { min-height: 36px; margin-left: 4px; }
 .card-loops { font-size: 0.8rem; margin-bottom: 6px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
 #cardRouteSelect { margin-bottom: 6px; }
 .course-card tbody tr { cursor: default; }
@@ -460,8 +462,13 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
 
         <div class="section-card">
             <h3 id="rosterTitleHeader">Rubrica Gruppo (0 Amici)</h3>
-            <p style="font-size:0.7rem; color:#666; margin-bottom:4px;">Tocca un nome per modificarlo.</p>
+            <div id="rosterGroupNote" class="roster-group-note" hidden>
+                <p id="rosterGroupText" style="margin-bottom:4px;"></p>
+                <label id="whoAmIRow">Chi sei? <select id="whoAmI" onchange="setWhoAmI(this.value)"></select></label>
+            </div>
+            <p id="rosterEditHint" style="font-size:0.7rem; color:#666; margin-bottom:4px;">Tocca un nome per modificarlo.</p>
             <div id="rosterList" style="max-height: 140px; overflow-y: auto; margin-bottom: 6px; font-size: 0.82rem;"></div>
+            <div id="friendForm">
             <input type="text" id="newFriendName" placeholder="Nome e Cognome">
             <input type="text" inputmode="decimal" id="newFriendHcp" placeholder="Handicap Index (es. 18,4 · plus: -1,2)">
             <input type="email" id="newFriendEmail" placeholder="Email (es. mario@gmail.com)">
@@ -478,13 +485,15 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
                 <option value="arancio">Tee abituale: 🟠 Arancio (donne avanzati)</option>
             </select>
             <label class="friend-me"><input type="checkbox" id="newFriendMe"> Sono io (il telefono è mio)</label>
+            <label class="friend-me" id="newFriendAdminRow" hidden><input type="checkbox" id="newFriendAdmin"> Amministratore del gruppo (riceve l'invito da amministratore)</label>
             <div style="display: flex; gap: 6px;">
                 <button class="btn" id="btnFriendSave" onclick="saveFriendForm()">Aggiungi alla Rubrica</button>
                 <button class="btn btn-secondary" id="btnFriendCancel" onclick="resetFriendForm()" hidden>Annulla</button>
             </div>
+            </div>
         </div>
 
-        <div class="section-card">
+        <div class="section-card" id="rosterCopyCard">
             <h3>Copia della rubrica</h3>
             <p style="font-size:0.7rem; color:#666; margin-bottom:6px;">La rubrica vive solo su questo telefono. Esportala in un file per non perderla (cambio telefono, dati cancellati) o per passarla a un amico; importare aggiorna gli amici con lo stesso nome e aggiunge i nuovi.</p>
             <div style="display: flex; gap: 6px;">
@@ -499,10 +508,10 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
     <div id="tab-help" class="tab-content">
         <div class="help-box" id="fieldTestGuide">
             <h4 style="margin-top:0;">⛳ Collaudo in campo: cosa fare</h4>
-            <p>Collaudo della <b>v0.18 collaudo</b>: il nuovo <b>cambio automatico di buca</b> e il <b>cartellino di gara</b>. Distanze e ostacoli delle prime 9 del Brianza sono già confermati.</p>
+            <p>Collaudo della <b>v0.19 collaudo</b>: il nuovo <b>cambio automatico di buca</b> e il <b>cartellino di gara</b>. Distanze e ostacoli delle prime 9 del Brianza sono già confermati.</p>
             <p><b>A casa, prima di partire</b> (con la rete)</p>
             <ol style="padding-left: 18px; margin-bottom: 6px;">
-                <li>Apri EaglesT e controlla in alto a destra <b>v0.18 collaudo</b>. Se vedi una versione precedente, chiudi l'app del tutto e riaprila.</li>
+                <li>Apri EaglesT e controlla in alto a destra <b>v0.19 collaudo</b>. Se vedi una versione precedente, chiudi l'app del tutto e riaprila.</li>
                 <li>Telefono carico; porta un powerbank.</li>
                 <li>Qui in Aiuto, riquadro <b>🛰️ Registra il percorso</b>: <b>🗑️</b> se ci sono prove vecchie, poi <b>⏺️ Registra</b>.</li>
             </ol>
@@ -533,7 +542,7 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
             <p style="margin-bottom:6px;">Con il link di invito il telefono entra nel gruppo: ogni partita che tieni a fine giro parte da sola verso Eagles Bot (se manca la rete, appena torna) e all'apertura dell'app ricevi le partite del gruppo in cui ci sei anche tu. Tutto viaggia cifrato con la parola d'ordine del gruppo.</p>
             <p class="small-note" style="margin-bottom:6px;">Proprietario e amministratori: inviti, rinnovo della chiave (scade il 25/03/2027) e controllo del bot sono nella guida <b>EAGLES_BOT.md</b>, nella cartella del progetto EaglesT.</p>
             <p id="groupInfo" style="margin-bottom:6px;"></p>
-            <div id="groupJoin" hidden>
+            <div id="groupJoin">
                 <textarea id="groupInviteText" rows="3" placeholder="Incolla qui il link o il messaggio di invito" autocomplete="off" style="width:100%; margin-bottom:6px; box-sizing:border-box;"></textarea>
                 <button class="btn" onclick="joinFromText()">👥 Entra nel gruppo</button>
             </div>
@@ -543,6 +552,7 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
                     <button class="btn-outline" onclick="leaveGroup()">Esci dal gruppo</button>
                 </div>
             </div>
+            <button class="btn" id="publishRubricaBtn" onclick="publishFirstRubrica()" style="margin-top:6px;" hidden>📤 Pubblica la mia rubrica come rubrica del gruppo</button>
         </div>
         <div class="help-box">
             <h4 style="margin-top:0;">🛰️ Registra il percorso</h4>
@@ -1682,7 +1692,8 @@ return maplibregl$1;
 <script>
 /* src/js/group.js */
 /* EaglesT — gruppo con Eagles Bot (logica pura: la usano l'app e il bot).
- * L'invito porta repository dati, chiave GitHub (solo issue) e parola d'ordine del gruppo.
+ * L'invito porta repository dati, chiave GitHub (solo issue) e parola d'ordine del gruppo; l'invito da
+ * amministratore anche la chiave da amministratore, l'unica con cui il bot accetta modifiche alla rubrica.
  * Le partite viaggiano cifrate come issue; il bot le unisce nello storico di gruppo:
  * stessa partita, o stessa giornata + campo + giocatori (doppione da due telefoni) → vince l'ultima arrivata. */
 (function (root) {
@@ -1692,19 +1703,22 @@ return maplibregl$1;
     const toB64Url = s => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     const fromB64Url = s => decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/'))));
 
-    function buildInvite(baseUrl, { repo, token, key }) {
-        return `${baseUrl}#${INVITE_KEY}${toB64Url(JSON.stringify({ v: 1, repo, token, key }))}`;
+    function buildInvite(baseUrl, { repo, token, key, admin }) {
+        const d = { v: 1, repo, token, key };
+        if (admin) d.admin = admin;
+        return `${baseUrl}#${INVITE_KEY}${toB64Url(JSON.stringify(d))}`;
     }
 
-    /** null se l'hash non è un invito; { error } se è rovinato; altrimenti { repo, token, key }. */
+    /** null se l'hash non è un invito; { error } se è rovinato; altrimenti { repo, token, key[, admin] }. */
     function parseInvite(hash) {
         const raw = String(hash || '').replace(/^#/, '');
         if (!raw.startsWith(INVITE_KEY)) return null;
         let d;
         try { d = JSON.parse(fromB64Url(raw.slice(INVITE_KEY.length))); } catch { return { error: 'Invito rovinato o incompleto.' }; }
         if (!d || d.v !== 1 || !REPO_RE.test(d.repo || '') || typeof d.token !== 'string' || d.token.length < 20
-            || typeof d.key !== 'string' || d.key.length < 16) return { error: 'Invito non valido.' };
-        return { repo: d.repo, token: d.token, key: d.key };
+            || typeof d.key !== 'string' || d.key.length < 16
+            || (d.admin !== undefined && (typeof d.admin !== 'string' || d.admin.length < 16))) return { error: 'Invito non valido.' };
+        return { repo: d.repo, token: d.token, key: d.key, ...(d.admin ? { admin: d.admin } : {}) };
     }
 
     /** Giocatori della partita come insieme di nomi: riconosce la stessa partita registrata da due telefoni. */
@@ -1738,6 +1752,62 @@ return maplibregl$1;
         return { store: { v: 1, updated: at, rounds }, replaced };
     }
 
+    /* ---------- Rubrica ufficiale (la modificano solo gli amministratori) ---------- */
+
+    const HI_MIN = -10, HI_MAX = 54;
+    const str = (v, max) => String(v ?? '').trim().slice(0, max);
+
+    /** Giocatore della rubrica ufficiale: null se mancano codice o nome o l'handicap non è valido. */
+    function cleanPlayer(p) {
+        if (!p || typeof p !== 'object') return null;
+        const id = str(p.id, 40), name = str(p.name, 60);
+        const hcp = typeof p.hcp === 'number' ? p.hcp : parseFloat(String(p.hcp ?? '').replace(',', '.'));
+        if (!id || !name || !Number.isFinite(hcp) || hcp < HI_MIN || hcp > HI_MAX) return null;
+        return { id, name, hcp, sex: ['M', 'F'].includes(p.sex) ? p.sex : '', email: str(p.email, 100), tee: str(p.tee, 12), photo: str(p.photo, 500) };
+    }
+
+    /**
+     * Eagles Bot: nuova versione della rubrica ufficiale (l'invio è intero; vince l'ultimo arrivato, la storia la tiene git).
+     * Restituisce { rubrica } o { error }.
+     */
+    function mergeRubrica(current, payload, at) {
+        if (!payload || payload.type !== 'rubrica' || !payload.rubrica || !Array.isArray(payload.rubrica.players)) return { error: 'invio non valido' };
+        const players = payload.rubrica.players.map(cleanPlayer);
+        if (!players.length || players.some(p => !p)) return { error: 'rubrica non valida: giocatori senza codice, nome o handicap' };
+        const ids = new Set(players.map(p => p.id)), names = new Set(players.map(p => p.name.toLowerCase()));
+        if (ids.size !== players.length || names.size !== players.length) return { error: 'rubrica non valida: codici o nomi doppi' };
+        const admins = (payload.rubrica.admins || []).filter(id => ids.has(id));
+        return { rubrica: { v: 1, version: ((current && current.version) || 0) + 1, updated: at, players, admins } };
+    }
+
+    /**
+     * Rubrica del telefono → rubrica ufficiale. Le persone del telefono con lo stesso nome di un giocatore ufficiale
+     * prendono il suo codice (idMap: vecchio codice → nuovo); foto e data dell'invito restano quelle del telefono.
+     */
+    function rosterFromGroup(localRoster, rubrica) {
+        const key = s => s.trim().toLowerCase();
+        const idMap = {};
+        localRoster.forEach(f => {
+            const g = rubrica.players.find(p => p.id === f.id) || rubrica.players.find(p => key(p.name) === key(f.name));
+            if (g && g.id !== f.id) idMap[f.id] = g.id;
+        });
+        const roster = rubrica.players.map(p => {
+            const local = localRoster.find(f => (idMap[f.id] || f.id) === p.id) || {};
+            return { ...p, photo: p.photo || local.photo || '', ...(local.invitedAt ? { invitedAt: local.invitedAt } : {}) };
+        });
+        return { roster, idMap };
+    }
+
+    /** Partite del telefono con i codici dei giocatori aggiornati (giocatori e colpi). */
+    function remapRounds(history, idMap) {
+        if (!Object.keys(idMap).length) return history;
+        const swap = pid => idMap[pid] || pid;
+        return history.map(r => ({
+            ...r, players: r.players.map(p => ({ ...p, id: swap(p.id) })),
+            scores: Object.fromEntries(Object.entries(r.scores || {}).map(([n, row]) => [n, Object.fromEntries(Object.entries(row).map(([pid, v]) => [swap(pid), v]))])),
+        }));
+    }
+
     /**
      * Storico del telefono + storico di gruppo: le partite del gruppo in cui c'è il proprietario (per codice o,
      * finché la rubrica non è unica, per nome) entrano con il suo codice; stessa partita → vince quella del gruppo.
@@ -1764,7 +1834,7 @@ return maplibregl$1;
             .sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
     }
 
-    const api = { INVITE_KEY, buildInvite, parseInvite, mergeSubmission, mergeHistory, validRound };
+    const api = { INVITE_KEY, buildInvite, parseInvite, mergeSubmission, mergeHistory, validRound, cleanPlayer, mergeRubrica, rosterFromGroup, remapRounds };
     root.EaglesT = Object.assign(root.EaglesT || {}, { group: api });
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window);
@@ -1777,7 +1847,7 @@ const { geo, course: courseLib, scoring, mapstyle, round: roundLib, roster: rost
 
 window.addEventListener('error', e => { document.body.dataset.error = e.message; });
 
-const APP_VERSION = '0.18 collaudo';
+const APP_VERSION = '0.19 collaudo';
 const APP_URL = 'https://antonio1949.github.io/eaglest/';   // per i link creati dal file unico aperto in locale
 const AUTO_RESUME_M = 30;    // dopo un cambio buca a mano, l'avanzamento automatico riparte spostandosi di 30 m
 const TOAST_MS = 4000;
@@ -2515,6 +2585,9 @@ function renderRoster() {
 
     const sortedRoster = getAlphabeticalRosterWithIndices();
     document.getElementById('rosterTitleHeader').innerText = `Rubrica Gruppo (${roster.length} Amici)`;
+    // gruppo (app_group.js, caricato dopo): rubrica ufficiale di sola lettura per chi non è amministratore
+    const locked = typeof rosterLocked === 'function' && rosterLocked();
+    if (typeof renderRosterGroup === 'function') renderRosterGroup();
 
     sortedRoster.forEach(friend => {
         const avatarHtml = friend.photo ? `<img src="${esc(friend.photo)}" style="width:28px; height:28px; border-radius:50%; object-fit:cover; margin-right:6px;">` : `<div style="width:28px; height:28px; border-radius:50%; background:#ccc; display:flex; align-items:center; justify-content:center; font-size:0.65rem; font-weight:bold; margin-right:6px; color:#333;">${esc(friend.name.charAt(0))}</div>`;
@@ -2528,10 +2601,10 @@ function renderRoster() {
             </div>
             <div style="display:flex; align-items:center; gap:4px;">
                 ${typeof inviteButtonHtml === 'function' ? inviteButtonHtml(friend) : ''}
-                <button class="btn-icon-danger" onclick="event.stopPropagation(); deleteFriend(${friend.originalIndex})" title="Elimina">🗑️</button>
+                ${locked ? '' : `<button class="btn-icon-danger" onclick="event.stopPropagation(); deleteFriend(${friend.originalIndex})" title="Elimina">🗑️</button>`}
             </div>
         `;
-        row.onclick = () => editFriend(friend.originalIndex);
+        if (!locked) row.onclick = () => editFriend(friend.originalIndex);
         container.appendChild(row);
     });
 }
@@ -2556,6 +2629,7 @@ function editFriend(idx) {
     document.getElementById('newFriendTee').value = f.tee;
     document.getElementById('newFriendSex').value = f.sex || '';
     document.getElementById('newFriendMe').checked = f.id === me().id;
+    if (typeof fillAdminBox === 'function') fillAdminBox(f);
     document.getElementById('btnFriendSave').innerText = '💾 Salva modifiche';
     document.getElementById('btnFriendCancel').hidden = false;
     document.getElementById('newFriendName').scrollIntoView({ block: 'center' });
@@ -2567,6 +2641,7 @@ function resetFriendForm() {
     document.getElementById('newFriendTee').value = 'giallo';
     document.getElementById('newFriendSex').value = '';
     document.getElementById('newFriendMe').checked = false;
+    if (typeof fillAdminBox === 'function') fillAdminBox(null);
     document.getElementById('btnFriendSave').innerText = 'Aggiungi alla Rubrica';
     document.getElementById('btnFriendCancel').hidden = true;
 }
@@ -2578,11 +2653,14 @@ function saveFriendForm() {
     if (editingFriendIdx === null) roster.push({ ...f, id: newId() });
     else roster[editingFriendIdx] = { ...roster[editingFriendIdx], ...f, id: roster[editingFriendIdx].id };
     save('eaglest_roster', roster);
+    const saved = roster[editingFriendIdx ?? roster.length - 1];
     if (document.getElementById('newFriendMe').checked) {
-        meId = roster[editingFriendIdx ?? roster.length - 1].id;
+        meId = saved.id;
         save('eaglest_me', meId);
         remergeGroup();   // gruppo: le partite del nuovo proprietario (app_group.js)
     }
+    saveAdminBox(saved.id);   // gruppo: amministratori (solo per chi lo è)
+    rosterChanged();          // gruppo: un amministratore pubblica la nuova rubrica ufficiale
     resetFriendForm();
     renderRoster();
 }
@@ -2598,6 +2676,7 @@ function deleteFriend(idx) {
         if(selectedFlightIndices.length === 0) selectedFlightIndices = [0];
         save('eaglest_roster', roster);
         save('eaglest_last_flight', selectedFlightIndices);
+        rosterChanged();   // gruppo: un amministratore pubblica la nuova rubrica ufficiale
         resetFriendForm();
         renderRoster();
     }
@@ -2786,12 +2865,14 @@ async function importRosterFile(input) {
 }
 
 function importRosterText(text) {
+    if (rosterLocked()) { alert("La rubrica è quella ufficiale del gruppo: la cambia solo un amministratore."); return; }
     const { friends, error } = rosterLib.parseRoster(text);
     if (error) { alert(error); return; }
     const res = rosterLib.mergeRoster(roster, friends, newId);
     if (!confirm(`Importare la rubrica?\n${res.added} amici nuovi, ${res.updated} aggiornati (stesso nome).`)) return;
     roster = res.roster;
     save('eaglest_roster', roster);
+    rosterChanged();   // gruppo: un amministratore pubblica la nuova rubrica ufficiale
     resetFriendForm();
     renderRoster();
     showToast(`Rubrica importata: ${res.added} nuovi, ${res.updated} aggiornati`);
@@ -3059,13 +3140,17 @@ document.body.dataset.ready = '1';
 <script>
 /* src/js/app_group.js */
 /* EaglesT — interfaccia del gruppo con Eagles Bot (dopo app.js: ne usa load, save, me, showToast, render*).
- * Entrata con l'invito (#invito=…); a fine giro la partita parte da sola (coda se manca la rete);
- * all'apertura lo storico di gruppo entra in "Le mie partite". */
+ * Entrata con l'invito (#invito=… o incollato in Aiuto); a fine giro la partita parte da sola (coda se manca
+ * la rete); all'apertura arrivano la rubrica ufficiale e lo storico di gruppo.
+ * Rubrica ufficiale: la modificano solo gli amministratori (invito con la chiave da amministratore); sugli altri
+ * telefoni è di sola lettura e ognuno sceglie "Chi sei?". */
 const { crypt: cryptLib, group: groupLib } = window.EaglesT;
 
 const GROUP_ISSUE_TITLE = 'dati EaglesT';   // generico: le issue del repository dati sono pubbliche
 let groupCfg = load('eaglest_group', null);
-let outbox = load('eaglest_outbox', []);
+let groupRubrica = load('eaglest_group_rubrica', null);   // ultima rubrica ufficiale applicata
+// coda degli invii: { kind: 'round', id, round } | { kind: 'rubrica', rubrica }; le versioni precedenti erano solo partite
+let outbox = load('eaglest_outbox', []).map(x => (x.kind ? x : { kind: 'round', id: x.id, round: x }));
 
 function deviceId() {
     let id = localStorage.getItem('eaglest_device');
@@ -3073,7 +3158,14 @@ function deviceId() {
     return id;
 }
 
-/** Invito aperto: si entra nel gruppo dopo conferma, poi si scarica lo storico. */
+function isAdmin() { return !!(groupCfg && groupCfg.admin); }
+
+/** Rubrica bloccata: c'è la rubrica ufficiale e questo telefono non è di un amministratore. */
+function rosterLocked() { return !!(groupCfg && groupRubrica && !isAdmin()); }
+
+/* ---------- Entrata nel gruppo ---------- */
+
+/** Invito aperto: si entra nel gruppo dopo conferma, poi si scaricano rubrica e storico. */
 function checkInvite() {
     const res = groupLib.parseInvite(location.hash);
     if (!res) return;
@@ -3082,8 +3174,8 @@ function checkInvite() {
 }
 
 /**
- * Invito incollato in Aiuto: per quando il link arriva tagliato (alcune app tolgono la parte dopo #).
- * Accetta il link intero o solo la parte da "invito=" in poi.
+ * Invito incollato in Aiuto: per quando il link arriva tagliato (alcune app tolgono la parte dopo #), o per
+ * passare a un invito nuovo (chiave rinnovata, invito da amministratore). Accetta il link o il messaggio intero.
  */
 function joinFromText() {
     const text = document.getElementById('groupInviteText').value;
@@ -3096,22 +3188,50 @@ function joinFromText() {
 
 function joinGroup(res) {
     if (res.error) { alert(res.error); return false; }
-    if (!confirm('Entrare nel gruppo EaglesT? Le partite che tieni verranno condivise con il gruppo.')) return false;
+    const question = res.admin ? 'Entrare nel gruppo EaglesT come amministratore? Potrai modificare la rubrica del gruppo.'
+        : 'Entrare nel gruppo EaglesT? Le partite che tieni verranno condivise con il gruppo.';
+    if (!confirm(question)) return false;
     groupCfg = res;
     save('eaglest_group', groupCfg);
-    showToast('👥 Sei nel gruppo EaglesT');
+    showToast(res.admin ? '🛡️ Sei amministratore del gruppo EaglesT' : '👥 Sei nel gruppo EaglesT');
     renderGroupBox();
     renderRoster();
     pullGroup();
     return true;
 }
 
+/* ---------- Invii a Eagles Bot ---------- */
+
 /** Partita tenuta: in coda per il gruppo e invio subito, se c'è rete. */
 function sendToGroup(round) {
     if (!groupCfg) return;
-    outbox = outbox.filter(r => r.id !== round.id).concat([round]);
+    outbox = outbox.filter(x => !(x.kind === 'round' && x.id === round.id)).concat([{ kind: 'round', id: round.id, round }]);
     save('eaglest_outbox', outbox);
     flushOutbox();
+}
+
+/** Amministratore: la rubrica del telefono diventa la nuova rubrica ufficiale (in coda resta solo l'ultima). */
+function publishRubrica() {
+    if (!isAdmin()) return;
+    const players = roster.map(groupLib.cleanPlayer).filter(Boolean);
+    const admins = load('eaglest_group_admins', groupRubrica ? groupRubrica.admins : [me().id]).filter(id => players.some(p => p.id === id));
+    outbox = outbox.filter(x => x.kind !== 'rubrica').concat([{ kind: 'rubrica', rubrica: { players, admins } }]);
+    save('eaglest_outbox', outbox);
+    flushOutbox();
+}
+
+/** Rubrica modificata su questo telefono (app.js lo chiama dopo salvataggi, eliminazioni e importazioni). */
+function rosterChanged() {
+    if (isAdmin() && groupRubrica) publishRubrica();
+}
+
+/** Primo avvio della rubrica ufficiale: l'amministratore pubblica la rubrica del suo telefono. */
+function publishFirstRubrica() {
+    if (!isAdmin()) return;
+    if (!confirm(`Pubblicare la tua rubrica (${roster.length} giocatori) come rubrica ufficiale del gruppo? Da quel momento la riceveranno tutti e la potranno cambiare solo gli amministratori.`)) return;
+    save('eaglest_group_admins', [me().id]);
+    publishRubrica();
+    showToast('📤 Rubrica inviata a Eagles Bot');
 }
 
 let flushing = false;
@@ -3120,7 +3240,10 @@ async function flushOutbox() {
     flushing = true;
     try {
         while (outbox.length) {
-            const body = await cryptLib.encrypt({ type: 'round', device: deviceId(), round: outbox[0] }, groupCfg.key);
+            const item = outbox[0];
+            const body = item.kind === 'rubrica'
+                ? await cryptLib.encrypt({ type: 'rubrica', device: deviceId(), rubrica: item.rubrica }, groupCfg.admin)
+                : await cryptLib.encrypt({ type: 'round', device: deviceId(), round: item.round }, groupCfg.key);
             const res = await fetch(`https://api.github.com/repos/${groupCfg.repo}/issues`, {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${groupCfg.token}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
@@ -3132,25 +3255,55 @@ async function flushOutbox() {
             localStorage.removeItem('eaglest_group_error');
         }
     } catch {
-        save('eaglest_group_error', 'nessuna rete: la partita partirà più tardi');
+        save('eaglest_group_error', 'nessuna rete: gli invii partiranno più tardi');
     } finally {
         flushing = false;
         renderGroupBox();
     }
 }
 
-/** Storico di gruppo pubblicato dal bot → "Le mie partite" (le partite dove ci sono io). */
+/* ---------- Ricezione: rubrica ufficiale e storico di gruppo ---------- */
+
+async function fetchEnc(file) {
+    const res = await fetch(`https://raw.githubusercontent.com/${groupCfg.repo}/main/data/${file}?t=${Date.now()}`, { cache: 'no-store' });
+    if (res.status === 404) return null;   // il bot non l'ha ancora pubblicato
+    if (!res.ok) throw new Error(String(res.status));
+    return cryptLib.decrypt(await res.text(), groupCfg.key);
+}
+
+/**
+ * Rubrica ufficiale → rubrica del telefono. Chi aveva lo stesso nome prende il codice ufficiale, anche nelle partite
+ * già registrate, nel giro in corso e in "Sono io". Un amministratore con una rubrica ancora da inviare tiene la sua.
+ */
+function applyGroupRubrica(rub) {
+    if (isAdmin() && outbox.some(x => x.kind === 'rubrica')) return;
+    const { roster: next, idMap } = groupLib.rosterFromGroup(roster, rub);
+    roster = next;
+    save('eaglest_roster', roster);
+    save('eaglest_rounds', groupLib.remapRounds(load('eaglest_rounds', []), idMap));
+    if (activeRound) { activeRound = groupLib.remapRounds([activeRound], idMap)[0]; save('eaglest_round', activeRound); }
+    if (idMap[meId]) { meId = idMap[meId]; save('eaglest_me', meId); }
+    selectedFlightIndices = [Math.max(0, roster.findIndex(f => f.id === meId))];
+    save('eaglest_last_flight', selectedFlightIndices);
+    groupRubrica = rub;
+    save('eaglest_group_rubrica', rub);
+    save('eaglest_group_admins', rub.admins);
+}
+
+/** Rubrica e storico pubblicati dal bot → rubrica del telefono e "Le mie partite" (le partite dove ci sono io). */
 async function pullGroup() {
     if (!groupCfg) return;
     try {
-        const res = await fetch(`https://raw.githubusercontent.com/${groupCfg.repo}/main/data/storico.enc?t=${Date.now()}`, { cache: 'no-store' });
-        if (res.status === 404) { save('eaglest_group_sync', new Date().toISOString()); renderGroupBox(); return; }   // ancora nessuna partita
-        if (!res.ok) throw new Error(String(res.status));
-        const store = await cryptLib.decrypt(await res.text(), groupCfg.key);
-        save('eaglest_group_store', store);   // copia locale: serve a ricalcolare se cambia "Sono io", anche senza rete
-        save('eaglest_rounds', groupLib.mergeHistory(load('eaglest_rounds', []), store, me()));
+        const rub = await fetchEnc('rubrica.enc');
+        if (rub && Array.isArray(rub.players)) applyGroupRubrica(rub);
+        const store = await fetchEnc('storico.enc');
+        if (store) {
+            save('eaglest_group_store', store);   // copia locale: serve a ricalcolare se cambia "Sono io", anche senza rete
+            save('eaglest_rounds', groupLib.mergeHistory(load('eaglest_rounds', []), store, me()));
+        }
         save('eaglest_group_sync', new Date().toISOString());
         localStorage.removeItem('eaglest_group_error');
+        renderRoster();
         renderHome();
         if (document.getElementById('tab-rounds').classList.contains('active')) renderRoundsList();
     } catch {
@@ -3167,10 +3320,45 @@ function remergeGroup() {
     renderHome();
 }
 
+/** "Chi sei?" della rubrica ufficiale (sola lettura): sceglie il proprietario del telefono. */
+function setWhoAmI(id) {
+    if (!roster.some(f => f.id === id)) return;
+    meId = id;
+    save('eaglest_me', meId);
+    remergeGroup();
+    renderRoster();
+}
+
+/* ---------- Schermate ---------- */
+
+/** Rubrica: avviso "rubrica del gruppo", "Chi sei?" e modulo nascosto per chi non è amministratore. */
+function renderRosterGroup() {
+    const note = document.getElementById('rosterGroupNote');
+    if (!note) return;
+    const official = !!(groupCfg && groupRubrica);
+    note.hidden = !official;
+    document.getElementById('friendForm').hidden = rosterLocked();
+    document.getElementById('rosterCopyCard').hidden = rosterLocked();
+    document.getElementById('rosterEditHint').hidden = rosterLocked();
+    document.getElementById('newFriendAdminRow').hidden = !(isAdmin() && groupRubrica);
+    if (!official) return;
+    document.getElementById('rosterGroupText').innerText = isAdmin()
+        ? `🛡️ Sei amministratore: le modifiche partono da sole e arrivano a tutto il gruppo (versione ${groupRubrica.version}).`
+        : `Rubrica del gruppo (versione ${groupRubrica.version}), curata dagli amministratori: arriva da sola a ogni apertura.`;
+    const known = roster.some(f => f.id === meId);
+    document.getElementById('whoAmI').innerHTML = (known ? '' : '<option value="">-- scegli il tuo nome --</option>') +
+        roster.slice().sort((a, b) => a.name.localeCompare(b.name))
+            .map(f => `<option value="${esc(f.id)}" ${f.id === meId ? 'selected' : ''}>${esc(f.name)}</option>`).join('');
+    document.getElementById('whoAmIRow').hidden = isAdmin();
+}
+
 function renderGroupBox() {
     const box = document.getElementById('groupInfo');
     if (!box) return;
-    document.getElementById('groupJoin').hidden = !!groupCfg;
+    document.getElementById('groupInviteText').placeholder = groupCfg
+        ? 'Hai ricevuto un nuovo invito (chiave rinnovata o da amministratore)? Incollalo qui'
+        : 'Incolla qui il link o il messaggio di invito';
+    document.getElementById('publishRubricaBtn').hidden = !(isAdmin() && !groupRubrica);
     if (!groupCfg) {
         box.innerText = 'Non sei in un gruppo: apri il link di invito ricevuto, oppure copialo e incollalo qui sotto.';
         document.getElementById('groupButtons').hidden = true;
@@ -3178,9 +3366,10 @@ function renderGroupBox() {
     }
     const sync = load('eaglest_group_sync', null);
     const err = load('eaglest_group_error', null);
-    box.innerText = [`Gruppo collegato (${groupCfg.repo.split('/')[1]}).`,
+    box.innerText = [`Gruppo collegato (${groupCfg.repo.split('/')[1]})${isAdmin() ? ' come amministratore' : ''}.`,
         sync ? `Ultimo aggiornamento: ${new Date(sync).toLocaleString('it-IT')}.` : 'Mai aggiornato.',
-        outbox.length ? `In attesa di invio: ${outbox.length} partite.` : 'Nessuna partita in attesa.',
+        groupRubrica ? `Rubrica del gruppo: versione ${groupRubrica.version}.` : 'Rubrica del gruppo non ancora pubblicata.',
+        outbox.length ? `In attesa di invio: ${outbox.length}.` : 'Nessun invio in attesa.',
         err ? `⚠️ ${err}` : ''].filter(Boolean).join(' ');
     document.getElementById('groupButtons').hidden = false;
 }
@@ -3194,15 +3383,27 @@ function inviteButtonHtml(friend) {
     return `${when}<button class="btn-small invite-btn" onclick="event.stopPropagation(); inviteFriend(${friend.originalIndex})">✉️ ${friend.invitedAt ? 'Di nuovo' : 'Invita'}</button>`;
 }
 
-/** Testo dell'invito: link e istruzioni, con il nome da usare in "Sono io" (deve coincidere con la rubrica di chi invita). */
+/** Amico segnato amministratore nella rubrica ufficiale. */
+function isGroupAdmin(friend) {
+    return load('eaglest_group_admins', []).includes(friend.id);
+}
+
+/**
+ * Testo dell'invito. Solo un amministratore può invitare come amministratore (il suo invito contiene la chiave).
+ * Con la rubrica ufficiale l'amico sceglie il suo nome in "Chi sei?"; prima, lo scrive uguale a quello del gruppo.
+ */
 function inviteMessage(friend) {
-    const link = groupLib.buildInvite(appBaseUrl(), groupCfg);
-    return `Ciao ${friend.name}, ti invito nel gruppo EaglesT.\n\n` +
+    const asAdmin = isAdmin() && isGroupAdmin(friend);
+    const link = groupLib.buildInvite(appBaseUrl(), asAdmin ? groupCfg : { repo: groupCfg.repo, token: groupCfg.token, key: groupCfg.key });
+    const after = groupRubrica && !asAdmin
+        ? `Dopo aver accettato, in EaglesT scheda Gruppo scegli "${friend.name}" in "Chi sei?".\n`
+        : `Dopo aver accettato, in EaglesT scheda Gruppo: inserisci te stesso come "${friend.name}" e spunta "Sono io".\n`;
+    return `Ciao ${friend.name}, ti invito nel gruppo EaglesT${asAdmin ? ' come amministratore' : ''}.\n\n` +
         `✅ ACCETTO – tocca il link qui sotto e rispondi OK:\n${link}\n\n` +
         `❌ NON PARTECIPO – rispondi a questo messaggio con "no, grazie".\n\n` +
-        `Dopo aver accettato, in EaglesT scheda Gruppo: inserisci te stesso come "${friend.name}" e spunta "Sono io".\n` +
+        after +
         `Se il link apre l'app senza chiedere nulla: copia tutto il messaggio, poi Aiuto → Gruppo EaglesT → incolla → Entra nel gruppo.\n` +
-        `Il link è riservato al gruppo: non inoltrarlo.`;
+        `Il link è riservato${asAdmin ? ' a te: contiene la chiave da amministratore' : ' al gruppo'}: non inoltrarlo.`;
 }
 
 async function inviteFriend(idx) {
@@ -3223,6 +3424,19 @@ async function inviteFriend(idx) {
     renderRoster();
 }
 
+/** Scheda amico (amministratori): casella "Amministratore del gruppo". */
+function fillAdminBox(friend) {
+    document.getElementById('newFriendAdmin').checked = !!friend && isGroupAdmin(friend);
+}
+
+/** Salvataggio della scheda (amministratori): aggiorna l'elenco degli amministratori prima di pubblicare. */
+function saveAdminBox(friendId) {
+    if (!isAdmin() || !groupRubrica) return;
+    const admins = new Set(load('eaglest_group_admins', []));
+    if (document.getElementById('newFriendAdmin').checked) admins.add(friendId); else admins.delete(friendId);
+    save('eaglest_group_admins', [...admins]);
+}
+
 function syncGroupNow() {
     flushOutbox();
     pullGroup();
@@ -3231,8 +3445,8 @@ function syncGroupNow() {
 function leaveGroup() {
     if (!confirm('Uscire dal gruppo? Le partite già ricevute restano sul telefono; le nuove non verranno più condivise.')) return;
     groupCfg = null;
-    localStorage.removeItem('eaglest_group');
-    localStorage.removeItem('eaglest_group_store');
+    groupRubrica = null;
+    ['eaglest_group', 'eaglest_group_store', 'eaglest_group_rubrica', 'eaglest_group_admins'].forEach(k => localStorage.removeItem(k));
     renderGroupBox();
     renderRoster();
 }
@@ -3241,7 +3455,7 @@ checkInvite();
 window.addEventListener('hashchange', checkInvite);
 window.addEventListener('online', flushOutbox);
 renderGroupBox();
-renderRoster();   // tasti "Invita" (la rubrica è disegnata da app.js prima di questo file)
+renderRoster();   // tasti "Invita" e rubrica del gruppo (la rubrica è disegnata da app.js prima di questo file)
 flushOutbox();
 pullGroup();
 
