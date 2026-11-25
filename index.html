@@ -112,6 +112,7 @@ header h1 { font-size: 1rem; font-weight: 700; letter-spacing: 0.5px; }
 .received-me { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; margin-bottom: 10px; }
 .received-me select { flex: 1; }
 .btn-small { padding: 5px 10px; font-size: 0.8rem; margin-top: 4px; }
+.invite-btn { white-space: nowrap; margin-top: 0; }
 .card-loops { font-size: 0.8rem; margin-bottom: 6px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
 #cardRouteSelect { margin-bottom: 6px; }
 .course-card tbody tr { cursor: default; }
@@ -498,10 +499,10 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
     <div id="tab-help" class="tab-content">
         <div class="help-box" id="fieldTestGuide">
             <h4 style="margin-top:0;">⛳ Collaudo in campo: cosa fare</h4>
-            <p>Collaudo della <b>v0.16 collaudo</b>: il nuovo <b>cambio automatico di buca</b> e il <b>cartellino di gara</b>. Distanze e ostacoli delle prime 9 del Brianza sono già confermati.</p>
+            <p>Collaudo della <b>v0.17 collaudo</b>: il nuovo <b>cambio automatico di buca</b> e il <b>cartellino di gara</b>. Distanze e ostacoli delle prime 9 del Brianza sono già confermati.</p>
             <p><b>A casa, prima di partire</b> (con la rete)</p>
             <ol style="padding-left: 18px; margin-bottom: 6px;">
-                <li>Apri EaglesT e controlla in alto a destra <b>v0.16 collaudo</b>. Se vedi una versione precedente, chiudi l'app del tutto e riaprila.</li>
+                <li>Apri EaglesT e controlla in alto a destra <b>v0.17 collaudo</b>. Se vedi una versione precedente, chiudi l'app del tutto e riaprila.</li>
                 <li>Telefono carico; porta un powerbank.</li>
                 <li>Qui in Aiuto, riquadro <b>🛰️ Registra il percorso</b>: <b>🗑️</b> se ci sono prove vecchie, poi <b>⏺️ Registra</b>.</li>
             </ol>
@@ -1710,6 +1711,11 @@ return maplibregl$1;
     const signature = r => [r.date.slice(0, 10), r.courseId, r.holesType,
         r.players.map(p => p.name.trim().toLowerCase()).sort().join('|')].join('#');
 
+    const SAME_ROUND_MS = 3 * 3600 * 1000;   // stessa partita: iniziata a meno di 3 ore (9 buche al mattino e 9 al pomeriggio restano due)
+
+    /** Stessa partita registrata da due telefoni: stessa giornata, campo, tipo di giro e giocatori, iniziate a meno di 3 ore. */
+    const sameRound = (a, b) => signature(a) === signature(b) && Math.abs(Date.parse(a.date) - Date.parse(b.date)) < SAME_ROUND_MS;
+
     function validRound(r) {
         return r && typeof r.id === 'string' && r.id.length <= 40 && !Number.isNaN(Date.parse(r.date))
             && typeof r.courseId === 'string' && ['18', '9_out', '9_in'].includes(r.holesType)
@@ -1726,8 +1732,7 @@ return maplibregl$1;
         if (!payload || payload.type !== 'round' || !validRound(payload.round)) return { error: 'invio non valido' };
         const round = { ...payload.round, closed: true };
         const rounds = { ...(store.rounds || {}) };
-        const sig = signature(round);
-        const replaced = Object.keys(rounds).filter(id => id === round.id || signature(rounds[id].round) === sig);
+        const replaced = Object.keys(rounds).filter(id => id === round.id || sameRound(rounds[id].round, round));
         replaced.forEach(id => delete rounds[id]);
         rounds[round.id] = { round, device: String(payload.device || '').slice(0, 40), at };
         return { store: { v: 1, updated: at, rounds }, replaced };
@@ -1754,8 +1759,7 @@ return maplibregl$1;
             };
         }).filter(Boolean);
         // fuori: le partite che il gruppo ha (stesso codice o doppione) e quelle arrivate dal gruppo e poi tolte
-        const groupSigs = new Set(group.map(signature));
-        const kept = history.filter(r => !r.fromGroup && !groupIds.has(r.id) && !groupSigs.has(signature(r)));
+        const kept = history.filter(r => !r.fromGroup && !groupIds.has(r.id) && !group.some(g => sameRound(g, r)));
         return [...kept, ...mine.map(r => ({ ...r, fromGroup: true }))]
             .sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
     }
@@ -1773,7 +1777,7 @@ const { geo, course: courseLib, scoring, mapstyle, round: roundLib, roster: rost
 
 window.addEventListener('error', e => { document.body.dataset.error = e.message; });
 
-const APP_VERSION = '0.16 collaudo';
+const APP_VERSION = '0.17 collaudo';
 const APP_URL = 'https://antonio1949.github.io/eaglest/';   // per i link creati dal file unico aperto in locale
 const AUTO_RESUME_M = 30;    // dopo un cambio buca a mano, l'avanzamento automatico riparte spostandosi di 30 m
 const TOAST_MS = 4000;
@@ -2522,7 +2526,10 @@ function renderRoster() {
                 ${avatarHtml}
                 <div><b>${esc(friend.name)}</b>${friend.id === me().id ? ' · io' : ''} (HCP: ${esc(friend.hcp)} · ${TEE_LABELS[friend.tee] || ''})<br><span style="font-size:0.7rem; color:#666;">${esc(friend.email)}</span></div>
             </div>
-            <button class="btn-icon-danger" onclick="event.stopPropagation(); deleteFriend(${friend.originalIndex})" title="Elimina">🗑️</button>
+            <div style="display:flex; align-items:center; gap:4px;">
+                ${typeof inviteButtonHtml === 'function' ? inviteButtonHtml(friend) : ''}
+                <button class="btn-icon-danger" onclick="event.stopPropagation(); deleteFriend(${friend.originalIndex})" title="Elimina">🗑️</button>
+            </div>
         `;
         row.onclick = () => editFriend(friend.originalIndex);
         container.appendChild(row);
@@ -3093,6 +3100,7 @@ function joinGroup(res) {
     save('eaglest_group', groupCfg);
     showToast('👥 Sei nel gruppo EaglesT');
     renderGroupBox();
+    renderRoster();
     pullGroup();
     return true;
 }
@@ -3176,6 +3184,43 @@ function renderGroupBox() {
     document.getElementById('groupButtons').hidden = false;
 }
 
+/* ---------- Invito di un amico della rubrica (email, oppure condivisione del telefono) ---------- */
+
+/** Tasto nella rubrica: solo nel gruppo e per gli amici (non per sé). Ricorda la data dell'ultimo invito. */
+function inviteButtonHtml(friend) {
+    if (!groupCfg || friend.id === me().id) return '';
+    const when = friend.invitedAt ? `<span class="small-note">invitato il ${new Date(friend.invitedAt).toLocaleDateString('it-IT')}</span>` : '';
+    return `${when}<button class="btn-small invite-btn" onclick="event.stopPropagation(); inviteFriend(${friend.originalIndex})">✉️ ${friend.invitedAt ? 'Di nuovo' : 'Invita'}</button>`;
+}
+
+/** Testo dell'invito: link e istruzioni, con il nome da usare in "Sono io" (deve coincidere con la rubrica di chi invita). */
+function inviteMessage(friend) {
+    const link = groupLib.buildInvite(appBaseUrl(), groupCfg);
+    return `Ciao ${friend.name}, ti invito nel gruppo EaglesT.\n\n` +
+        `1. Tocca il link qui sotto: si apre EaglesT e chiede "Entrare nel gruppo EaglesT?": rispondi OK.\n` +
+        `2. Se si apre senza chiedere nulla: copia tutto questo messaggio, poi in EaglesT vai in Aiuto → Gruppo EaglesT, incolla e tocca "Entra nel gruppo".\n` +
+        `3. Nella scheda Gruppo inserisci te stesso con il nome "${friend.name}", scritto così, e spunta "Sono io".\n\n` +
+        `Il link è riservato al gruppo: non inoltrarlo ad altri.\n\n${link}`;
+}
+
+async function inviteFriend(idx) {
+    const friend = roster[idx];
+    if (!groupCfg || !friend) return;
+    const text = inviteMessage(friend);
+    const subject = 'Invito al gruppo EaglesT';
+    if (friend.email) {
+        window.location.href = `mailto:${encodeURIComponent(friend.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`;
+    } else if (navigator.share) {
+        try { await navigator.share({ title: subject, text }); } catch { return; /* condivisione annullata */ }
+    } else {
+        alert(`${friend.name} non ha un'email in rubrica: aggiungila nella sua scheda, oppure apri EaglesT dal telefono per mandare l'invito con WhatsApp.`);
+        return;
+    }
+    roster[idx] = { ...friend, invitedAt: new Date().toISOString() };
+    save('eaglest_roster', roster);
+    renderRoster();
+}
+
 function syncGroupNow() {
     flushOutbox();
     pullGroup();
@@ -3187,12 +3232,14 @@ function leaveGroup() {
     localStorage.removeItem('eaglest_group');
     localStorage.removeItem('eaglest_group_store');
     renderGroupBox();
+    renderRoster();
 }
 
 checkInvite();
 window.addEventListener('hashchange', checkInvite);
 window.addEventListener('online', flushOutbox);
 renderGroupBox();
+renderRoster();   // tasti "Invita" (la rubrica è disegnata da app.js prima di questo file)
 flushOutbox();
 pullGroup();
 
