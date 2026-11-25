@@ -498,10 +498,10 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
     <div id="tab-help" class="tab-content">
         <div class="help-box" id="fieldTestGuide">
             <h4 style="margin-top:0;">⛳ Collaudo in campo: cosa fare</h4>
-            <p>Collaudo della <b>v0.14 collaudo</b>: il nuovo <b>cambio automatico di buca</b> e il <b>cartellino di gara</b>. Distanze e ostacoli delle prime 9 del Brianza sono già confermati.</p>
+            <p>Collaudo della <b>v0.15 collaudo</b>: il nuovo <b>cambio automatico di buca</b> e il <b>cartellino di gara</b>. Distanze e ostacoli delle prime 9 del Brianza sono già confermati.</p>
             <p><b>A casa, prima di partire</b> (con la rete)</p>
             <ol style="padding-left: 18px; margin-bottom: 6px;">
-                <li>Apri EaglesT e controlla in alto a destra <b>v0.14 collaudo</b>. Se vedi una versione precedente, chiudi l'app del tutto e riaprila.</li>
+                <li>Apri EaglesT e controlla in alto a destra <b>v0.15 collaudo</b>. Se vedi una versione precedente, chiudi l'app del tutto e riaprila.</li>
                 <li>Telefono carico; porta un powerbank.</li>
                 <li>Qui in Aiuto, riquadro <b>🛰️ Registra il percorso</b>: <b>🗑️</b> se ci sono prove vecchie, poi <b>⏺️ Registra</b>.</li>
             </ol>
@@ -1763,7 +1763,7 @@ const { geo, course: courseLib, scoring, mapstyle, round: roundLib, roster: rost
 
 window.addEventListener('error', e => { document.body.dataset.error = e.message; });
 
-const APP_VERSION = '0.14 collaudo';
+const APP_VERSION = '0.15 collaudo';
 const APP_URL = 'https://antonio1949.github.io/eaglest/';   // per i link creati dal file unico aperto in locale
 const AUTO_RESUME_M = 30;    // dopo un cambio buca a mano, l'avanzamento automatico riparte spostandosi di 30 m
 const TOAST_MS = 4000;
@@ -2564,6 +2564,7 @@ function saveFriendForm() {
     if (document.getElementById('newFriendMe').checked) {
         meId = roster[editingFriendIdx ?? roster.length - 1].id;
         save('eaglest_me', meId);
+        remergeGroup();   // gruppo: le partite del nuovo proprietario (app_group.js)
     }
     resetFriendForm();
     renderRoster();
@@ -3128,6 +3129,7 @@ async function pullGroup() {
         if (res.status === 404) { save('eaglest_group_sync', new Date().toISOString()); renderGroupBox(); return; }   // ancora nessuna partita
         if (!res.ok) throw new Error(String(res.status));
         const store = await cryptLib.decrypt(await res.text(), groupCfg.key);
+        save('eaglest_group_store', store);   // copia locale: serve a ricalcolare se cambia "Sono io", anche senza rete
         save('eaglest_rounds', groupLib.mergeHistory(load('eaglest_rounds', []), store, me()));
         save('eaglest_group_sync', new Date().toISOString());
         localStorage.removeItem('eaglest_group_error');
@@ -3137,6 +3139,14 @@ async function pullGroup() {
         save('eaglest_group_error', 'aggiornamento non riuscito: riprovo alla prossima apertura');
     }
     renderGroupBox();
+}
+
+/** "Sono io" cambiato: le partite del gruppo si ricalcolano per il nuovo proprietario dalla copia locale. */
+function remergeGroup() {
+    const store = load('eaglest_group_store', null);
+    if (!groupCfg || !store) return;
+    save('eaglest_rounds', groupLib.mergeHistory(load('eaglest_rounds', []), store, me()));
+    renderHome();
 }
 
 function renderGroupBox() {
@@ -3166,6 +3176,7 @@ function leaveGroup() {
     if (!confirm('Uscire dal gruppo? Le partite già ricevute restano sul telefono; le nuove non verranno più condivise.')) return;
     groupCfg = null;
     localStorage.removeItem('eaglest_group');
+    localStorage.removeItem('eaglest_group_store');
     renderGroupBox();
 }
 
