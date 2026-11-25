@@ -498,10 +498,10 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
     <div id="tab-help" class="tab-content">
         <div class="help-box" id="fieldTestGuide">
             <h4 style="margin-top:0;">⛳ Collaudo in campo: cosa fare</h4>
-            <p>Collaudo della <b>v0.15 collaudo</b>: il nuovo <b>cambio automatico di buca</b> e il <b>cartellino di gara</b>. Distanze e ostacoli delle prime 9 del Brianza sono già confermati.</p>
+            <p>Collaudo della <b>v0.16 collaudo</b>: il nuovo <b>cambio automatico di buca</b> e il <b>cartellino di gara</b>. Distanze e ostacoli delle prime 9 del Brianza sono già confermati.</p>
             <p><b>A casa, prima di partire</b> (con la rete)</p>
             <ol style="padding-left: 18px; margin-bottom: 6px;">
-                <li>Apri EaglesT e controlla in alto a destra <b>v0.15 collaudo</b>. Se vedi una versione precedente, chiudi l'app del tutto e riaprila.</li>
+                <li>Apri EaglesT e controlla in alto a destra <b>v0.16 collaudo</b>. Se vedi una versione precedente, chiudi l'app del tutto e riaprila.</li>
                 <li>Telefono carico; porta un powerbank.</li>
                 <li>Qui in Aiuto, riquadro <b>🛰️ Registra il percorso</b>: <b>🗑️</b> se ci sono prove vecchie, poi <b>⏺️ Registra</b>.</li>
             </ol>
@@ -567,7 +567,7 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
             <details class="help-item"><summary>📝 Scorecard e handicap</summary>
                 <p>Stableford individuale. In alto segni i colpi della buca in corso: sulla buca vuota c'è il <b>par proposto in grigio</b>, un tocco sul numero lo conferma, + e − partono dal par. <b>👥 Giocatori del giro</b> (in fondo) toglie, cambia (persona o partenza) o aggiunge giocatori a giro iniziato: i colpi restano al loro posto, chi esce li perde, l'handicap di gioco si ricalcola; sotto c'è il <b>cartellino di gara</b> di tutti i giocatori: buca, par, Hcp buca, e per ognuno colpi, <b>*</b> colpi disponibili e punti, con Andata, Ritorno e Totale. Le intestazioni sono le iniziali con il Playing HCP. I colpi disponibili vengono dal Playing HCP del giocatore e dall'indice della buca (Regolamento Handicap FIG 2024: Course Handicap da Handicap Index, Course Rating e Slope ufficiali del tee, correttivo 100%). Tocca una riga per andare a quella buca. <b>📤 Condividi</b> manda classifica e cartellino (WhatsApp lo mostra allineato). Il differenziale del giro (Regola 5.1a FIG, stima personale) è nel cartellino delle partite archiviate, non nel messaggio.</p></details>
             <details class="help-item"><summary>🏠 Home, partite e condivisione</summary>
-                <p>Il tuo nome e handicap (tocca il nome per correggerli), il miglior punteggio Stableford (solo giri da 18 buche) e l'ultima partita. "Le mie partite" elenca i giri tenuti: toccane uno per il cartellino, 🗑️ per eliminarlo. A <b>Fine giro</b> scegli se tenere o annullare la partita. Se tocchi <b>Inizia a Giocare</b> con una partita aperta puoi continuarla o chiuderla (Tieni o Annulla) e poi configurarne una nuova. <b>📤 Condividi</b> sul cartellino manda un messaggio con un link: chi lo apre con EaglesT sceglie chi è nella partita e se tenerla. Nessun server: la partita viaggia nel link.</p></details>
+                <p>Il tuo nome e handicap (tocca il nome per correggerli), il miglior punteggio Stableford (solo giri da 18 buche completi) e l'ultima partita. "Le mie partite" elenca i giri tenuti, con le buche giocate (es. "12 buche su 18" per un giro interrotto): toccane uno per il cartellino, 🗑️ per eliminarlo. A <b>Fine giro</b> scegli se tenere o annullare la partita. Se tocchi <b>Inizia a Giocare</b> con una partita aperta puoi continuarla o chiuderla (Tieni o Annulla) e poi configurarne una nuova. <b>📤 Condividi</b> sul cartellino manda un messaggio con un link: chi lo apre con EaglesT sceglie chi è nella partita e se tenerla. Nessun server: la partita viaggia nel link.</p></details>
             <details class="help-item"><summary>🏌️ Circolo, percorso e scheda campo</summary>
                 <p>Nei circoli con più percorsi (Golf Club Milano: Rosso, Giallo, Blu) in Configurazione scegli la combinazione; ognuna ha i suoi indici Hcp e Course Rating. Le partenze proposte sono quelle valutate per quel percorso e quel giro, e la partenza suggerita dipende dal sesso in rubrica. <b>📋 Scheda campo</b> mostra tutti i percorsi del circolo con par, Hcp, metri per partenza e CR/Slope.</p></details>
             <details class="help-item"><summary>👥 Gruppo</summary>
@@ -1305,14 +1305,14 @@ return maplibregl$1;
 
     /**
      * Giri archiviati di un giocatore (dal più vecchio): ultimo giro e miglior punteggio Stableford.
-     * Il migliore solo tra i giri di 18 buche: i punti di 9 buche non sono confrontabili.
+     * Il migliore solo tra i giri di 18 buche completi: i punti di 9 buche o di un giro interrotto non sono confrontabili.
      */
     function playerRecords(history, courses, pid) {
         const mine = history
             .filter(r => courses[r.courseId] && r.players.some(p => p.id === pid))
             .map(r => ({ round: r, total: totals(r, courses[r.courseId]).find(t => t.player.id === pid) }))
             .sort((a, b) => Date.parse(a.round.date) - Date.parse(b.round.date));
-        const best = mine.filter(x => x.round.holesType === '18')
+        const best = mine.filter(x => x.round.holesType === '18' && !x.total.missing.length)
             .reduce((b, x) => (!b || x.total.points > b.total.points ? x : b), null);
         return { best, last: mine.length ? mine[mine.length - 1] : null, count: mine.length, rounds: mine };
     }
@@ -1328,6 +1328,16 @@ return maplibregl$1;
             const cells = round.players.map(p => holeResult(round, course, h.n, p));
             return { n: h.n, par: h.par, si: h[key], cells, complete: cells.every(c => c.strokes != null) };
         });
+    }
+
+    /** Buche giocate sul totale del giro: "1 buca su 18", "12 buche su 18"; completo: "18 buche". */
+    function holesLabel(played, total) {
+        return played === total ? `${total} buche` : `${played} ${played === 1 ? 'buca' : 'buche'} su ${total}`;
+    }
+
+    /** Buche del giro con almeno un colpo segnato (da qualunque giocatore). */
+    function holesWithStrokes(round, course) {
+        return scorecardRows(round, course).filter(r => r.cells.some(c => c.strokes != null)).length;
     }
 
     /** Colpi disponibili sulla buca come sul cartellino di gara: * per colpo; − per colpo restituito (handicap plus). */
@@ -1395,7 +1405,7 @@ return maplibregl$1;
         return padR(s.label.slice(0, 3).toUpperCase(), 8) + s.cells.map(c => padR(c.played ? `${pad(c.strokes, 3)} ${pad(c.points, 2)}` : '  -', 7)).join('').trimEnd();
     }
 
-    const api = { playedHoles, handicapFor, createRound, updatePlayers, getStrokes, setStrokes, holeResult, totals, differential, playerRecords, scorecardRows, formatDecimal, summaryText, stars, initials, sectionTotals };
+    const api = { playedHoles, handicapFor, createRound, updatePlayers, getStrokes, setStrokes, holeResult, totals, differential, playerRecords, scorecardRows, formatDecimal, summaryText, stars, initials, sectionTotals, holesLabel, holesWithStrokes };
     root.EaglesT = Object.assign(root.EaglesT || {}, { round: api });
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window);
@@ -1763,7 +1773,7 @@ const { geo, course: courseLib, scoring, mapstyle, round: roundLib, roster: rost
 
 window.addEventListener('error', e => { document.body.dataset.error = e.message; });
 
-const APP_VERSION = '0.15 collaudo';
+const APP_VERSION = '0.16 collaudo';
 const APP_URL = 'https://antonio1949.github.io/eaglest/';   // per i link creati dal file unico aperto in locale
 const AUTO_RESUME_M = 30;    // dopo un cambio buca a mano, l'avanzamento automatico riparte spostandosi di 30 m
 const TOAST_MS = 4000;
@@ -2597,9 +2607,8 @@ function formatHi(hi) {
 function recordText(rec) {
     if (!rec) return { val: '–', sub: 'nessun giro' };
     const r = rec.round, day = new Date(r.date).toLocaleDateString('it-IT');
-    const notes = [day];
-    if (r.holesType !== '18') notes.push('9 buche');
-    if (rec.total.missing.length) notes.push('incompleto');
+    const total = roundLib.playedHoles(coursesData[r.courseId], r.holesType).length;
+    const notes = [day, roundLib.holesLabel(rec.total.played, total)];
     return { val: `${rec.total.points} pt`, sub: `${r.courseName}
 ${notes.join(' · ')}` };
 }
@@ -2623,9 +2632,8 @@ function renderRoundsList() {
     const rounds = roundLib.playerRecords(load('eaglest_rounds', []), coursesData, me().id).rounds.slice().reverse();
     document.getElementById('roundsList').innerHTML = rounds.length ? rounds.map(({ round: r, total: t }) => {
         const p = r.players.find(x => x.id === me().id);
-        const notes = [`${t.strokes} colpi`, HOLES_LABEL[r.holesType]];
+        const notes = [`${t.strokes} colpi`, roundLib.holesLabel(t.played, t.played + t.missing.length)];
         if (p.differential != null) notes.push(`differenziale ${roundLib.formatDecimal(p.differential)}`);
-        if (t.missing.length) notes.push('incompleto');
         return `<div class="round-row" onclick="openArchivedRound('${esc(r.id)}')">
             <div><b>${new Date(r.date).toLocaleDateString('it-IT')}</b> · ${esc(r.courseName)}<br><span class="small-note">${notes.join(' · ')}</span></div>
             <div class="round-pts">${t.points} pt</div>
@@ -2942,7 +2950,8 @@ function renderVerify(r = activeRound) {
     const c = coursesData[r.courseId];
     document.getElementById('btnVerifyBack').innerText = r === activeRound ? '◀ Scorecard' : '◀ Partite';
     const day = new Date(r.date).toLocaleDateString('it-IT');
-    document.getElementById('verifyTitle').innerText = `${r.courseName} · ${day}` + (r.closed ? ' · giro chiuso' : '');
+    const total = roundLib.playedHoles(c, r.holesType).length;
+    document.getElementById('verifyTitle').innerText = `${r.courseName} · ${day} · ${roundLib.holesLabel(roundLib.holesWithStrokes(r, c), total)}`;
     renderCard('verifyCard', r, c, { differential: true });
     const totals = roundLib.totals(r, c);
     const missing = totals.filter(t => t.missing.length).map(t => `${esc(t.player.name)}: buche ${t.missing.join(', ')}`);
