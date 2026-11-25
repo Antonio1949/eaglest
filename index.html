@@ -508,10 +508,10 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
     <div id="tab-help" class="tab-content">
         <div class="help-box" id="fieldTestGuide">
             <h4 style="margin-top:0;">⛳ Collaudo in campo: cosa fare</h4>
-            <p>Collaudo della <b>v0.19 collaudo</b>: il nuovo <b>cambio automatico di buca</b> e il <b>cartellino di gara</b>. Distanze e ostacoli delle prime 9 del Brianza sono già confermati.</p>
+            <p>Collaudo della <b>v0.20 collaudo</b>: il nuovo <b>cambio automatico di buca</b> e il <b>cartellino di gara</b>. Distanze e ostacoli delle prime 9 del Brianza sono già confermati.</p>
             <p><b>A casa, prima di partire</b> (con la rete)</p>
             <ol style="padding-left: 18px; margin-bottom: 6px;">
-                <li>Apri EaglesT e controlla in alto a destra <b>v0.19 collaudo</b>. Se vedi una versione precedente, chiudi l'app del tutto e riaprila.</li>
+                <li>Apri EaglesT e controlla in alto a destra <b>v0.20 collaudo</b>. Se vedi una versione precedente, chiudi l'app del tutto e riaprila.</li>
                 <li>Telefono carico; porta un powerbank.</li>
                 <li>Qui in Aiuto, riquadro <b>🛰️ Registra il percorso</b>: <b>🗑️</b> se ci sono prove vecchie, poi <b>⏺️ Registra</b>.</li>
             </ol>
@@ -581,6 +581,9 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
                 <p>Il tuo nome e handicap (tocca il nome per correggerli), il miglior punteggio Stableford (solo giri da 18 buche completi) e l'ultima partita. "Le mie partite" elenca i giri tenuti, con le buche giocate (es. "12 buche su 18" per un giro interrotto): toccane uno per il cartellino, 🗑️ per eliminarlo. A <b>Fine giro</b> scegli se tenere o annullare la partita. Se tocchi <b>Inizia a Giocare</b> con una partita aperta puoi continuarla o chiuderla (Tieni o Annulla) e poi configurarne una nuova. <b>📤 Condividi</b> sul cartellino manda un messaggio con un link: chi lo apre con EaglesT sceglie chi è nella partita e se tenerla. Nessun server: la partita viaggia nel link.</p></details>
             <details class="help-item"><summary>🏌️ Circolo, percorso e scheda campo</summary>
                 <p>Nei circoli con più percorsi (Golf Club Milano: Rosso, Giallo, Blu) in Configurazione scegli la combinazione; ognuna ha i suoi indici Hcp e Course Rating. Le partenze proposte sono quelle valutate per quel percorso e quel giro, e la partenza suggerita dipende dal sesso in rubrica. <b>📋 Scheda campo</b> mostra tutti i percorsi del circolo con par, Hcp, metri per partenza e CR/Slope.</p></details>
+            <details class="help-item"><summary>⌚ Orologio (in prova sul PC)</summary>
+                <p>Pagina per uno smartwatch con GPS e browser: distanza dal centro green grandissima, inizio e fine green, i <b>due ostacoli</b> più vicini davanti (per arrivarci → per superarlo). All'avvio propone il circolo e la buca del tee più vicino: controlla e tocca <b>▶ Gioca</b>. Durante il gioco: <b>tocco a sinistra o a destra</b> = buca prima o dopo, <b>pressione lunga al centro</b> = menu (Continua, Nuovo giro). Cambia buca da solo con la stessa regola del telefono. Cifre grigie = posizione vecchia (schermo appena riacceso). È indipendente dal telefono: i colpi restano sul telefono. Al Milano scegli tu il percorso: le prime 9 di due combinazioni partono dallo stesso tee.</p>
+                <p><a href="watch_sim.html" target="_blank" rel="noopener">⌚ Apri il simulatore sul PC</a> · indirizzo per l'orologio: <b>antonio1949.github.io/eaglest/watch.html</b></p></details>
             <details class="help-item"><summary>👥 Gruppo</summary>
                 <p>La rubrica degli amici: handicap, sesso, foto. "Sono io" indica il proprietario del telefono, sempre primo nel flight. Esporta la rubrica in un file per non perderla o per passarla a un amico.</p></details>
             <p style="font-size:0.7rem; color:#666;" id="dataSourceNote"></p>
@@ -1847,7 +1850,7 @@ const { geo, course: courseLib, scoring, mapstyle, round: roundLib, roster: rost
 
 window.addEventListener('error', e => { document.body.dataset.error = e.message; });
 
-const APP_VERSION = '0.19 collaudo';
+const APP_VERSION = '0.20 collaudo';
 const APP_URL = 'https://antonio1949.github.io/eaglest/';   // per i link creati dal file unico aperto in locale
 const AUTO_RESUME_M = 30;    // dopo un cambio buca a mano, l'avanzamento automatico riparte spostandosi di 30 m
 const TOAST_MS = 4000;
