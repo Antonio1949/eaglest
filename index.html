@@ -498,10 +498,10 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
     <div id="tab-help" class="tab-content">
         <div class="help-box" id="fieldTestGuide">
             <h4 style="margin-top:0;">⛳ Collaudo in campo: cosa fare</h4>
-            <p>Collaudo della <b>v0.13 collaudo</b>: il nuovo <b>cambio automatico di buca</b> e il <b>cartellino di gara</b>. Distanze e ostacoli delle prime 9 del Brianza sono già confermati.</p>
+            <p>Collaudo della <b>v0.14 collaudo</b>: il nuovo <b>cambio automatico di buca</b> e il <b>cartellino di gara</b>. Distanze e ostacoli delle prime 9 del Brianza sono già confermati.</p>
             <p><b>A casa, prima di partire</b> (con la rete)</p>
             <ol style="padding-left: 18px; margin-bottom: 6px;">
-                <li>Apri EaglesT e controlla in alto a destra <b>v0.13 collaudo</b>. Se vedi una versione precedente, chiudi l'app del tutto e riaprila.</li>
+                <li>Apri EaglesT e controlla in alto a destra <b>v0.14 collaudo</b>. Se vedi una versione precedente, chiudi l'app del tutto e riaprila.</li>
                 <li>Telefono carico; porta un powerbank.</li>
                 <li>Qui in Aiuto, riquadro <b>🛰️ Registra il percorso</b>: <b>🗑️</b> se ci sono prove vecchie, poi <b>⏺️ Registra</b>.</li>
             </ol>
@@ -532,6 +532,10 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
             <p style="margin-bottom:6px;">Con il link di invito il telefono entra nel gruppo: ogni partita che tieni a fine giro parte da sola verso Eagles Bot (se manca la rete, appena torna) e all'apertura dell'app ricevi le partite del gruppo in cui ci sei anche tu. Tutto viaggia cifrato con la parola d'ordine del gruppo.</p>
             <p class="small-note" style="margin-bottom:6px;">Proprietario e amministratori: inviti, rinnovo della chiave (scade il 25/03/2027) e controllo del bot sono nella guida <b>EAGLES_BOT.md</b>, nella cartella del progetto EaglesT.</p>
             <p id="groupInfo" style="margin-bottom:6px;"></p>
+            <div id="groupJoin" hidden>
+                <input id="groupInviteText" type="text" placeholder="Incolla qui il link di invito" autocomplete="off" style="width:100%; margin-bottom:6px; min-height:40px; box-sizing:border-box;">
+                <button class="btn" onclick="joinFromText()">👥 Entra nel gruppo</button>
+            </div>
             <div id="groupButtons" hidden>
                 <div style="display:flex; gap:6px;">
                     <button class="btn" onclick="syncGroupNow()">🔄 Aggiorna ora</button>
@@ -1759,7 +1763,7 @@ const { geo, course: courseLib, scoring, mapstyle, round: roundLib, roster: rost
 
 window.addEventListener('error', e => { document.body.dataset.error = e.message; });
 
-const APP_VERSION = '0.13 collaudo';
+const APP_VERSION = '0.14 collaudo';
 const APP_URL = 'https://antonio1949.github.io/eaglest/';   // per i link creati dal file unico aperto in locale
 const AUTO_RESUME_M = 30;    // dopo un cambio buca a mano, l'avanzamento automatico riparte spostandosi di 30 m
 const TOAST_MS = 4000;
@@ -3057,13 +3061,30 @@ function checkInvite() {
     const res = groupLib.parseInvite(location.hash);
     if (!res) return;
     history.replaceState(null, '', location.pathname + location.search);
-    if (res.error) { alert(res.error); return; }
-    if (!confirm('Entrare nel gruppo EaglesT? Le partite che tieni verranno condivise con il gruppo.')) return;
+    joinGroup(res);
+}
+
+/**
+ * Invito incollato in Aiuto: per quando il link arriva tagliato (alcune app tolgono la parte dopo #).
+ * Accetta il link intero o solo la parte da "invito=" in poi.
+ */
+function joinFromText() {
+    const text = document.getElementById('groupInviteText').value.trim();
+    const i = text.indexOf(groupLib.INVITE_KEY);
+    const res = i >= 0 ? groupLib.parseInvite(text.slice(i)) : null;
+    if (!res) { alert("Non è un invito EaglesT: incolla il link intero ricevuto dall'amministratore."); return; }
+    if (joinGroup(res)) document.getElementById('groupInviteText').value = '';
+}
+
+function joinGroup(res) {
+    if (res.error) { alert(res.error); return false; }
+    if (!confirm('Entrare nel gruppo EaglesT? Le partite che tieni verranno condivise con il gruppo.')) return false;
     groupCfg = res;
     save('eaglest_group', groupCfg);
     showToast('👥 Sei nel gruppo EaglesT');
     renderGroupBox();
     pullGroup();
+    return true;
 }
 
 /** Partita tenuta: in coda per il gruppo e invio subito, se c'è rete. */
@@ -3121,8 +3142,9 @@ async function pullGroup() {
 function renderGroupBox() {
     const box = document.getElementById('groupInfo');
     if (!box) return;
+    document.getElementById('groupJoin').hidden = !!groupCfg;
     if (!groupCfg) {
-        box.innerText = 'Non sei in un gruppo: apri il link di invito ricevuto su WhatsApp.';
+        box.innerText = 'Non sei in un gruppo: apri il link di invito ricevuto, oppure copialo e incollalo qui sotto.';
         document.getElementById('groupButtons').hidden = true;
         return;
     }
