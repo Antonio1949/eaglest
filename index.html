@@ -499,10 +499,10 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
     <div id="tab-help" class="tab-content">
         <div class="help-box" id="fieldTestGuide">
             <h4 style="margin-top:0;">⛳ Collaudo in campo: cosa fare</h4>
-            <p>Collaudo della <b>v0.17 collaudo</b>: il nuovo <b>cambio automatico di buca</b> e il <b>cartellino di gara</b>. Distanze e ostacoli delle prime 9 del Brianza sono già confermati.</p>
+            <p>Collaudo della <b>v0.18 collaudo</b>: il nuovo <b>cambio automatico di buca</b> e il <b>cartellino di gara</b>. Distanze e ostacoli delle prime 9 del Brianza sono già confermati.</p>
             <p><b>A casa, prima di partire</b> (con la rete)</p>
             <ol style="padding-left: 18px; margin-bottom: 6px;">
-                <li>Apri EaglesT e controlla in alto a destra <b>v0.17 collaudo</b>. Se vedi una versione precedente, chiudi l'app del tutto e riaprila.</li>
+                <li>Apri EaglesT e controlla in alto a destra <b>v0.18 collaudo</b>. Se vedi una versione precedente, chiudi l'app del tutto e riaprila.</li>
                 <li>Telefono carico; porta un powerbank.</li>
                 <li>Qui in Aiuto, riquadro <b>🛰️ Registra il percorso</b>: <b>🗑️</b> se ci sono prove vecchie, poi <b>⏺️ Registra</b>.</li>
             </ol>
@@ -534,7 +534,7 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
             <p class="small-note" style="margin-bottom:6px;">Proprietario e amministratori: inviti, rinnovo della chiave (scade il 25/03/2027) e controllo del bot sono nella guida <b>EAGLES_BOT.md</b>, nella cartella del progetto EaglesT.</p>
             <p id="groupInfo" style="margin-bottom:6px;"></p>
             <div id="groupJoin" hidden>
-                <input id="groupInviteText" type="text" placeholder="Incolla qui il link di invito" autocomplete="off" style="width:100%; margin-bottom:6px; min-height:40px; box-sizing:border-box;">
+                <textarea id="groupInviteText" rows="3" placeholder="Incolla qui il link o il messaggio di invito" autocomplete="off" style="width:100%; margin-bottom:6px; box-sizing:border-box;"></textarea>
                 <button class="btn" onclick="joinFromText()">👥 Entra nel gruppo</button>
             </div>
             <div id="groupButtons" hidden>
@@ -1777,7 +1777,7 @@ const { geo, course: courseLib, scoring, mapstyle, round: roundLib, roster: rost
 
 window.addEventListener('error', e => { document.body.dataset.error = e.message; });
 
-const APP_VERSION = '0.17 collaudo';
+const APP_VERSION = '0.18 collaudo';
 const APP_URL = 'https://antonio1949.github.io/eaglest/';   // per i link creati dal file unico aperto in locale
 const AUTO_RESUME_M = 30;    // dopo un cambio buca a mano, l'avanzamento automatico riparte spostandosi di 30 m
 const TOAST_MS = 4000;
@@ -3086,9 +3086,10 @@ function checkInvite() {
  * Accetta il link intero o solo la parte da "invito=" in poi.
  */
 function joinFromText() {
-    const text = document.getElementById('groupInviteText').value.trim();
-    const i = text.indexOf(groupLib.INVITE_KEY);
-    const res = i >= 0 ? groupLib.parseInvite(text.slice(i)) : null;
+    const text = document.getElementById('groupInviteText').value;
+    // l'invito usa solo lettere, cifre, - e _: si estrae anche se il testo intorno gli si è attaccato (a capo persi)
+    const m = text.match(new RegExp(groupLib.INVITE_KEY + '[A-Za-z0-9_-]+'));
+    const res = m ? groupLib.parseInvite(m[0]) : null;
     if (!res) { alert("Non è un invito EaglesT: incolla il link intero ricevuto dall'amministratore."); return; }
     if (joinGroup(res)) document.getElementById('groupInviteText').value = '';
 }
@@ -3197,10 +3198,11 @@ function inviteButtonHtml(friend) {
 function inviteMessage(friend) {
     const link = groupLib.buildInvite(appBaseUrl(), groupCfg);
     return `Ciao ${friend.name}, ti invito nel gruppo EaglesT.\n\n` +
-        `1. Tocca il link qui sotto: si apre EaglesT e chiede "Entrare nel gruppo EaglesT?": rispondi OK.\n` +
-        `2. Se si apre senza chiedere nulla: copia tutto questo messaggio, poi in EaglesT vai in Aiuto → Gruppo EaglesT, incolla e tocca "Entra nel gruppo".\n` +
-        `3. Nella scheda Gruppo inserisci te stesso con il nome "${friend.name}", scritto così, e spunta "Sono io".\n\n` +
-        `Il link è riservato al gruppo: non inoltrarlo ad altri.\n\n${link}`;
+        `✅ ACCETTO – tocca il link qui sotto e rispondi OK:\n${link}\n\n` +
+        `❌ NON PARTECIPO – rispondi a questo messaggio con "no, grazie".\n\n` +
+        `Dopo aver accettato, in EaglesT scheda Gruppo: inserisci te stesso come "${friend.name}" e spunta "Sono io".\n` +
+        `Se il link apre l'app senza chiedere nulla: copia tutto il messaggio, poi Aiuto → Gruppo EaglesT → incolla → Entra nel gruppo.\n` +
+        `Il link è riservato al gruppo: non inoltrarlo.`;
 }
 
 async function inviteFriend(idx) {
