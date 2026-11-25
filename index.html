@@ -247,6 +247,11 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
 .card-table .card-ph { color: #dfe; }
 .entry-table .stars { color: #b35c00; }
 .entry-table td { padding: 2px 4px; }
+.entry-table .score-val { cursor: pointer; }
+.entry-table .score-val.proposed { color: #adb5bd; }
+.rp-row { display: flex; gap: 6px; margin-bottom: 6px; }
+.rp-row select { flex: 1; min-height: 40px; }
+.rp-row select:last-child { flex: 0 0 38%; }
 .entry-table .btn-score { width: 44px; height: 44px; font-size: 1.3rem; }
 .card-table tfoot td { font-weight: 700; background: #e8f5e9; }
 .verify-note { margin-top: 6px; line-height: 1.4; }
@@ -389,6 +394,7 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
                 <button class="btn btn-secondary" onclick="concludeGameAndCalcHcp()">🏁 Fine Giro</button>
                 <button class="btn" style="background: #2b9348;" onclick="shareResults()">📤 Condividi</button>
             </div>
+            <button class="btn-outline" style="margin-top: 6px;" onclick="openRoundPlayers()">👥 Giocatori del giro</button>
         </div>
     </div>
 
@@ -492,10 +498,10 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
     <div id="tab-help" class="tab-content">
         <div class="help-box" id="fieldTestGuide">
             <h4 style="margin-top:0;">⛳ Collaudo in campo: cosa fare</h4>
-            <p>Collaudo della <b>v0.11 collaudo</b>: il nuovo <b>cambio automatico di buca</b> e il <b>cartellino di gara</b>. Distanze e ostacoli delle prime 9 del Brianza sono già confermati.</p>
+            <p>Collaudo della <b>v0.12 collaudo</b>: il nuovo <b>cambio automatico di buca</b> e il <b>cartellino di gara</b>. Distanze e ostacoli delle prime 9 del Brianza sono già confermati.</p>
             <p><b>A casa, prima di partire</b> (con la rete)</p>
             <ol style="padding-left: 18px; margin-bottom: 6px;">
-                <li>Apri EaglesT e controlla in alto a destra <b>v0.11 collaudo</b>. Se vedi una versione precedente, chiudi l'app del tutto e riaprila.</li>
+                <li>Apri EaglesT e controlla in alto a destra <b>v0.12 collaudo</b>. Se vedi una versione precedente, chiudi l'app del tutto e riaprila.</li>
                 <li>Telefono carico; porta un powerbank.</li>
                 <li>Qui in Aiuto, riquadro <b>🛰️ Registra il percorso</b>: <b>🗑️</b> se ci sono prove vecchie, poi <b>⏺️ Registra</b>.</li>
             </ol>
@@ -507,7 +513,7 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
             <p><b>Su ogni buca</b></p>
             <ol style="padding-left: 18px; margin-bottom: 6px;">
                 <li><b>Cambio di buca</b>: deve avvenire da solo <b>dopo il green</b>, arrivando al tee della buca dopo (dal giallo) o allontanandoti dal green (sulle buche senza giallo mappato e per chi parte da altre partenze). Mai prima del green: alla <b>buca 5</b> passi vicino al tee della 6 senza che cambi. Se sbaglia, correggi con ◀ ▶: non serve annotare, la registrazione salva tutto.</li>
-                <li><b>Scorecard</b>: segna i colpi in alto (il primo + mette il par). Sotto c'è il cartellino di tutti: colpi, <b>*</b> colpi disponibili, punti. Controlla che gli asterischi corrispondano al cartellino del circolo.</li>
+                <li><b>Scorecard</b>: segna i colpi in alto. Sulla buca vuota c'è il <b>par proposto in grigio</b>: un tocco sul numero lo conferma, + e − partono dal par. Sotto c'è il cartellino di tutti: colpi, <b>*</b> colpi disponibili, punti. Controlla che gli asterischi corrispondano al cartellino del circolo.</li>
             </ol>
             <p><b>A fine giro</b></p>
             <ol style="padding-left: 18px; margin-bottom: 6px;">
@@ -543,7 +549,7 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
             <details class="help-item"><summary>⛳ Buca</summary>
                 <p>◀ ▶ cambiano buca; tocca il nome della buca per l'elenco completo. All'ultima buca ▶ diventa 🏁 e porta al cartellino. <b>Cambio automatico</b> (solo con un giro in corso e l'app aperta su Mappa o Scorecard): prima l'app riconosce che hai <b>giocato il green</b> (sei stato entro 30 m dal centro), poi passa alla buca dopo quando arrivi <b>entro 20 m dal suo tee</b>. Sulle buche il cui tee giallo non è mappato, e per chi gioca da un'altra partenza, passa anche quando ti <b>allontani di 30 m dal green</b> verso la buca dopo. Prima del green non cambia mai. Ogni passaggio deve reggere qualche secondo: un salto del GPS non basta. In basso compare "⛳ Buca N (GPS)". Se torni indietro a mano per correggere, il cambio automatico aspetta che ti sposti.</p></details>
             <details class="help-item"><summary>📝 Scorecard e handicap</summary>
-                <p>Stableford individuale. In alto segni i colpi della buca in corso (il primo + inserisce il par); sotto c'è il <b>cartellino di gara</b> di tutti i giocatori: buca, par, Hcp buca, e per ognuno colpi, <b>*</b> colpi disponibili e punti, con Andata, Ritorno e Totale. Le intestazioni sono le iniziali con il Playing HCP. I colpi disponibili vengono dal Playing HCP del giocatore e dall'indice della buca (Regolamento Handicap FIG 2024: Course Handicap da Handicap Index, Course Rating e Slope ufficiali del tee, correttivo 100%). Tocca una riga per andare a quella buca. <b>📤 Condividi</b> manda classifica e cartellino (WhatsApp lo mostra allineato). Il differenziale del giro (Regola 5.1a FIG, stima personale) è nel cartellino delle partite archiviate, non nel messaggio.</p></details>
+                <p>Stableford individuale. In alto segni i colpi della buca in corso: sulla buca vuota c'è il <b>par proposto in grigio</b>, un tocco sul numero lo conferma, + e − partono dal par. <b>👥 Giocatori del giro</b> (in fondo) toglie, cambia (persona o partenza) o aggiunge giocatori a giro iniziato: i colpi restano al loro posto, chi esce li perde, l'handicap di gioco si ricalcola; sotto c'è il <b>cartellino di gara</b> di tutti i giocatori: buca, par, Hcp buca, e per ognuno colpi, <b>*</b> colpi disponibili e punti, con Andata, Ritorno e Totale. Le intestazioni sono le iniziali con il Playing HCP. I colpi disponibili vengono dal Playing HCP del giocatore e dall'indice della buca (Regolamento Handicap FIG 2024: Course Handicap da Handicap Index, Course Rating e Slope ufficiali del tee, correttivo 100%). Tocca una riga per andare a quella buca. <b>📤 Condividi</b> manda classifica e cartellino (WhatsApp lo mostra allineato). Il differenziale del giro (Regola 5.1a FIG, stima personale) è nel cartellino delle partite archiviate, non nel messaggio.</p></details>
             <details class="help-item"><summary>🏠 Home, partite e condivisione</summary>
                 <p>Il tuo nome e handicap (tocca il nome per correggerli), il miglior punteggio Stableford (solo giri da 18 buche) e l'ultima partita. "Le mie partite" elenca i giri tenuti: toccane uno per il cartellino, 🗑️ per eliminarlo. A <b>Fine giro</b> scegli se tenere o annullare la partita. Se tocchi <b>Inizia a Giocare</b> con una partita aperta puoi continuarla o chiuderla (Tieni o Annulla) e poi configurarne una nuova. <b>📤 Condividi</b> sul cartellino manda un messaggio con un link: chi lo apre con EaglesT sceglie chi è nella partita e se tenerla. Nessun server: la partita viaggia nel link.</p></details>
             <details class="help-item"><summary>🏌️ Circolo, percorso e scheda campo</summary>
@@ -563,6 +569,21 @@ nav button svg { width: 18px; height: 18px; margin-bottom: 1px; fill: currentCol
                 <button class="btn" style="background: #2b9348;" onclick="keepRound()">💾 Tieni la partita</button>
                 <button class="btn" style="background: #a4161a;" onclick="discardRound()">🗑️ Annulla la partita</button>
                 <button class="btn btn-secondary" onclick="cancelEndRound()">◀ Continua a giocare</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="roundPlayersBox" class="hole-picker" hidden>
+        <div class="hole-picker-box">
+            <h3>👥 Giocatori del giro</h3>
+            <p class="small-note">Togli (-- nessuno --), cambia persona o partenza, aggiungi fino a 4. I colpi restano al loro posto: cambiando persona passano a chi la sostituisce; chi esce li perde. L'handicap di gioco si ricalcola dalla partenza.</p>
+                <div class="rp-row"><select id="rpPlayer0"></select><select id="rpTee0"></select></div>
+                <div class="rp-row"><select id="rpPlayer1"></select><select id="rpTee1"></select></div>
+                <div class="rp-row"><select id="rpPlayer2"></select><select id="rpTee2"></select></div>
+                <div class="rp-row"><select id="rpPlayer3"></select><select id="rpTee3"></select></div>
+            <div class="end-round-buttons">
+                <button class="btn" onclick="saveRoundPlayers()">💾 Salva</button>
+                <button class="btn-outline" onclick="closeRoundPlayers()">Annulla</button>
             </div>
         </div>
     </div>
@@ -1101,10 +1122,12 @@ return maplibregl$1;
         return Math.max(0, 2 + par - (strokes - received));
     }
 
-    /** Nuovo valore colpi dopo un tocco su +/−: il primo tocco parte dal par. */
+    /**
+     * Nuovo valore colpi dopo un tocco. Buca vuota: l'app propone il par (in grigio); tocco sul numero (delta 0)
+     * lo conferma, + e − partono dal par (par + 1, par − 1).
+     */
     function applyTap(current, delta, par) {
-        if (current == null) return delta > 0 ? par : Math.max(1, par - 1);
-        return Math.max(1, current + delta);
+        return Math.max(1, (current == null ? par : current) + delta);
     }
 
     /**
@@ -1193,6 +1216,20 @@ return maplibregl$1;
             scores: {},
             closed: false,
         };
+    }
+
+    /**
+     * Giocatori cambiati a giro iniziato. list: un elemento per posto, { from: id di chi occupava il posto o null,
+     * id, name, hi, tee }. I colpi seguono il posto (correggere chi era stato scelto per sbaglio non li perde);
+     * chi esce dal giro perde i suoi colpi; Course e Playing HCP ricalcolati dalla partenza scelta.
+     */
+    function updatePlayers(round, course, list) {
+        const kept = new Set(list.map(x => x.from).filter(Boolean));
+        const move = Object.fromEntries(list.filter(x => x.from).map(x => [x.from, x.id]));
+        const scores = Object.fromEntries(Object.entries(round.scores).map(([n, row]) => [n, Object.fromEntries(
+            Object.entries(row).filter(([pid]) => kept.has(pid)).map(([pid, v]) => [move[pid], v]))]));
+        const players = list.map(({ from, ...p }) => ({ ...p, ...handicapFor(course, round.holesType, p.hi, p.tee) }));
+        return { ...round, players, scores };
     }
 
     function getStrokes(round, n, pid) {
@@ -1342,7 +1379,7 @@ return maplibregl$1;
         return padR(s.label.slice(0, 3).toUpperCase(), 8) + s.cells.map(c => padR(c.played ? `${pad(c.strokes, 3)} ${pad(c.points, 2)}` : '  -', 7)).join('').trimEnd();
     }
 
-    const api = { playedHoles, handicapFor, createRound, getStrokes, setStrokes, holeResult, totals, differential, playerRecords, scorecardRows, formatDecimal, summaryText, stars, initials, sectionTotals };
+    const api = { playedHoles, handicapFor, createRound, updatePlayers, getStrokes, setStrokes, holeResult, totals, differential, playerRecords, scorecardRows, formatDecimal, summaryText, stars, initials, sectionTotals };
     root.EaglesT = Object.assign(root.EaglesT || {}, { round: api });
     if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window);
@@ -1577,7 +1614,7 @@ const { geo, course: courseLib, scoring, mapstyle, round: roundLib, roster: rost
 
 window.addEventListener('error', e => { document.body.dataset.error = e.message; });
 
-const APP_VERSION = '0.11 collaudo';
+const APP_VERSION = '0.12 collaudo';
 const APP_URL = 'https://antonio1949.github.io/eaglest/';   // per i link creati dal file unico aperto in locale
 const AUTO_RESUME_M = 30;    // dopo un cambio buca a mano, l'avanzamento automatico riparte spostandosi di 30 m
 const TOAST_MS = 4000;
@@ -2179,20 +2216,20 @@ function getAlphabeticalRosterWithIndices() {
 }
 
 /** Partenze con Course Rating per il percorso e il giro scelti (es. bianco e blu solo sulla 18 Rosso + Giallo). */
-function availableTees() {
-    const c = activeCourse(), holesType = document.getElementById('setupHolesCount').value;
+function availableTees(holesType = document.getElementById('setupHolesCount').value) {
+    const c = activeCourse();
     const layout = c.layouts && c.layouts[holesType];
     return Object.keys(c.tees || TEE_LABELS).filter(t => !layout || layout[t]);
 }
 
-function teeOptions(selected) {
-    return availableTees()
+function teeOptions(selected, holesType) {
+    return availableTees(holesType)
         .map(t => `<option value="${t}" ${t === selected ? 'selected' : ''}>${TEE_LABELS[t] || t}</option>`).join('');
 }
 
 /** Partenza del giocatore sul campo scelto: la sua abituale, o quella suggerita dal sesso se il campo non l'ha. */
-function playerTee(p) {
-    const tees = activeCourse().tees, ok = availableTees();
+function playerTee(p, holesType) {
+    const tees = activeCourse().tees, ok = availableTees(holesType);
     if (ok.includes(p.tee)) return p.tee;
     const offered = Object.fromEntries(Object.entries(tees || {}).filter(([t]) => ok.includes(t)));
     return rosterLib.suggestedTee(p.sex, offered);
@@ -2614,13 +2651,13 @@ function renderScoreTable() {
     const c = activeCourse();
     tbody.innerHTML = activeRound.players.map(p => {
         const r = roundLib.holeResult(activeRound, c, currentHole, p);
-        const strokesHtml = r.strokes == null ? '<span class="score-empty">–</span>' : r.strokes;
+        const strokesHtml = r.strokes == null ? c.holes.find(h => h.n === currentHole).par : r.strokes;
         const ptsHtml = r.points == null ? '' : `${r.points} pt`;
         return `<tr>
             <td style="text-align:left; font-weight:bold;">${esc(p.name)} <span class="stars">${roundLib.stars(r.received)}</span></td>
             <td>
                 <button class="btn-score" onclick="updateStrokes('${p.id}', -1)">−</button>
-                <span class="score-val" id="score_${p.id}">${strokesHtml}</span>
+                <span class="score-val${r.strokes == null ? ' proposed' : ''}" id="score_${p.id}" onclick="updateStrokes('${p.id}', 0)" role="button" aria-label="Conferma">${strokesHtml}</span>
                 <button class="btn-score" onclick="updateStrokes('${p.id}', 1)">+</button>
             </td>
             <td id="stableford_${p.id}" style="font-weight:bold; color:var(--primary);">${ptsHtml}</td>
@@ -2658,6 +2695,65 @@ function renderCard(id, r, c, { current = null, differential = false } = {}) {
         }).join('') + '</tr>');
     }
     table.tFoot.innerHTML = sections.join('');
+}
+
+/* ---------- Giocatori a giro iniziato: togliere, cambiare (persona o partenza), aggiungere ---------- */
+
+function openRoundPlayers() {
+    if (!roundOpen()) return;
+    activeRound.players.forEach((p, i) => { slotEl('rp', i).dataset.value = p.id; slotEl('rp', i).dataset.from = p.id; });
+    for (let i = activeRound.players.length; i < 4; i++) { slotEl('rp', i).dataset.value = ''; slotEl('rp', i).dataset.from = ''; }
+    for (let i = 0; i < 4; i++) {
+        const p = activeRound.players[i];
+        document.getElementById(`rpTee${i}`).innerHTML = teeOptions(p ? p.tee : 'giallo', activeRound.holesType);
+        slotEl('rp', i).onchange = () => {
+            const sel = slotEl('rp', i);
+            sel.dataset.value = sel.value;
+            const f = roster.find(r => r.id === sel.value);
+            if (f) document.getElementById(`rpTee${i}`).value = playerTee(f, activeRound.holesType);
+            renderRoundPlayerOptions();
+        };
+    }
+    renderRoundPlayerOptions();
+    document.getElementById('roundPlayersBox').hidden = false;
+}
+
+function slotEl(prefix, i) { return document.getElementById(`${prefix}Player${i}`); }
+
+/** Rubrica più chi è nel giro (anche se non in rubrica), senza chi è già negli altri posti. */
+function renderRoundPlayerOptions() {
+    const people = [...roster.map(f => ({ id: f.id, name: f.name, hi: f.hcp })),
+        ...activeRound.players.filter(p => !roster.some(f => f.id === p.id)).map(p => ({ id: p.id, name: p.name, hi: p.hi }))]
+        .sort((a, b) => a.name.localeCompare(b.name));
+    const sels = [0, 1, 2, 3].map(i => slotEl('rp', i));
+    sels.forEach(sel => {
+        const taken = new Set(sels.filter(o => o !== sel).map(o => o.dataset.value).filter(Boolean));
+        sel.innerHTML = '<option value="">-- nessuno --</option>' + people.filter(p => !taken.has(p.id))
+            .map(p => `<option value="${esc(p.id)}" ${sel.dataset.value === p.id ? 'selected' : ''}>${esc(p.name)} (HCP: ${p.hi})</option>`).join('');
+    });
+}
+
+function saveRoundPlayers() {
+    const list = [];
+    for (let i = 0; i < 4; i++) {
+        const sel = slotEl('rp', i), id = sel.value;
+        if (!id) continue;
+        const before = activeRound.players.find(p => p.id === id), f = roster.find(r => r.id === id);
+        const person = before || { id, name: f.name, hi: f.hcp };   // chi era già nel giro tiene l'handicap del giorno
+        list.push({ from: sel.dataset.from || null, id, name: person.name, hi: person.hi, tee: document.getElementById(`rpTee${i}`).value });
+    }
+    if (!list.length) { alert('Nel giro deve restare almeno un giocatore.'); return; }
+    const leaving = activeRound.players.filter(p => !list.some(x => x.from === p.id));
+    if (leaving.length && !confirm(`${leaving.map(p => p.name).join(', ')} esce dal giro e i suoi colpi vengono cancellati. Confermi?`)) return;
+    activeRound = roundLib.updatePlayers(activeRound, activeCourse(), list);
+    save('eaglest_round', activeRound);
+    closeRoundPlayers();
+    renderScoreTable();
+    showToast('👥 Giocatori aggiornati');
+}
+
+function closeRoundPlayers() {
+    document.getElementById('roundPlayersBox').hidden = true;
 }
 
 function updateStrokes(pid, delta) {
