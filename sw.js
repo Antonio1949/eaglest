@@ -2,7 +2,7 @@
  * L'app (pagine del telefono e dell'orologio, icone, manifest) viene salvata all'installazione; le immagini satellitari
  * già viste restano disponibili offline. Le distanze non dipendono dalla mappa: i green
  * sono dentro la pagina, quindi funzionano sempre. */
-const BUILD = 'c40a96b17885';
+const BUILD = '32826e8fb855';
 const APP_CACHE = 'eaglest-app-' + BUILD;
 const TILE_CACHE = 'eaglest-tiles';
 const TILE_HOST = 'ibasemaps-api.arcgis.com';
