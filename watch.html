@@ -713,11 +713,13 @@ function newRound() {
     showStart();
 }
 
-/** Termina: giro chiuso, GPS spento e schermo non più tenuto acceso (si risparmia batteria). */
+/**
+ * Termina: giro chiuso, GPS spento e schermo non più tenuto acceso (si risparmia batteria).
+ * L'ultima posizione resta: serve alla proposta del giro dopo e, se è vecchia, le cifre sono grigie.
+ */
 function endRound() {
     session = null;
     saveSession();
-    lastFix = null;
     if (gpsWatch !== null) { navigator.geolocation.clearWatch(gpsWatch); gpsWatch = null; }
     if (wakeLock) wakeLock.release().catch(() => {});
     show('endScreen');
